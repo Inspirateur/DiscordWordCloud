@@ -4,7 +4,7 @@ from typing import List, Tuple, Set
 import discord.ext.commands as commands
 from discord import Activity, ActivityType, File, Message, Member
 from Management import ignored
-from WordCloudImage.make_image import simple_image, virtual_image
+from WordCloudImage.make_image import virtual_image
 from WordCloudModel.model import Model
 try:
 	from WordCloudModel.echo import Echo as ModelClass
