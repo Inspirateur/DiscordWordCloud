@@ -1,6 +1,12 @@
 from typing import List
 import sqlite3
 from discord import TextChannel
+# create the DB and the table if it's not here
+conn = sqlite3.connect("Management/ignored.db")
+cur = conn.cursor()
+cur.execute("CREATE TABLE IF NOT EXISTS IgnoredChan (guildID integer, chanID integer)")
+conn.commit()
+conn.close()
 
 
 def ignore(chan: TextChannel):

@@ -137,7 +137,6 @@ class ModelCog(commands.Cog):
 			mentions.append(ctx.author)
 		async with ctx.channel.typing():
 			for member in mentions:
-				# imagepath = simple_image(resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)), str(member.id))
 				image = virtual_image(resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)))
 				await ctx.channel.send(
 					content=f"**{member.display_name}**'s Word Cloud ({ModelClass.__name__}):",
