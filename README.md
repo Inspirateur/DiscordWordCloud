@@ -2,7 +2,7 @@
 A discord bot that generates a word cloud for each discord user.
 
 The provided model used to generate the word cloud is dumb but fonctionnal, 
-I encourage you to make your own by inheriting `WordCloudModel/model.py` and importing it as `ModelClass` in `cog_model.py` ! 
+I encourage you to make your own by inheriting the `Model` class in `WordCloudModel/model.py` and importing it as `ModelClass` in `cog_model.py` ! 
 (I personally use a custom model I cannot disclose)
 
 # How to run it
