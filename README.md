@@ -14,10 +14,13 @@ I encourage you to make your own ! (I personally use another one I cannot disclo
 If you wish to invite my version of this bot on your server PM `Inspi#8989` on Discord
 
 # Features
+everyone:
 - `;cloud (<user(s)>)` to generate your word cloud, you can also tag users to generate their clouds
-- `;word <word>` to get a list of the top <word> users in your server
-- `;ignore <channel(s)>` [Requires manage channel permission] to make make the bot ignore <channel(s)> while training the model
-- `;listen <channel(s)>` [Requires manage channel permission] to make make the bot listen to <channel(s)> while training the model 
+- `;word <word>` to get a list of the top \<word> users in your server
+
+Requires manage channel permission:
+- `;ignore <channel(s)>` to make make the bot ignore <channel(s)> while training the model
+- `;listen <channel(s)>` to make make the bot listen to <channel(s)> while training the model 
 (by defaults the bot read all the channel it has read access to)
 
 Please note that this project is still in development, 
