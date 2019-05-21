@@ -1,2 +1,2 @@
 # DiscordWordCloud
-A toy project to make and maintain word cloud for each user of a Discord server with a Bot
+A discord bot that generates a word cloud for each discord user.
