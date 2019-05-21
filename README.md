@@ -26,4 +26,4 @@ Requires manage channel permission:
 Please note that this project is still in development, 
 some features like emoji display, real time training, are not implemented yet.
 
-*P.S.: for now there's no real time training, so the bot will save its model after training and automatically load it next time it starts, if you want to retrain the bot, just delete `WordCloudModel/your_model_save.json`*
+*P.S.: for now there's no real time training, so the bot will automatically train when starting and save its model after training. If a save of its model is present in `WordCloudModel/your_model_save.json` it will load it instead of training, if you don't want that just delete the save before starting the bot.*
