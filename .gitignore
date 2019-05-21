@@ -4,4 +4,3 @@ token.txt
 *_save.*
 WordCloudImage/Images/
 WordCloudModel/echo.py
-*.db
