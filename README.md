@@ -6,7 +6,7 @@ I encourage you to make your own ! (I personally use another one I cannot disclo
 
 # How to run it
 - Clone the project wherever you want
-- Install the requirements in `requirements.txt` with `pip`
+- Install the requirements listed in `requirements.txt` with `pip`
 - add a `token.txt` file at the root of the project
 - go to https://discordapp.com/developers/applications/ create your app, add a User Bot to it and paste its Client ID in `token.txt`
 - run the `main.py` with Python 3.5+!
