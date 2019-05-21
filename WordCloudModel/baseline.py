@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import Dict, List, Tuple
 import json
-from .model import Model, defaultwords
+from WordCloudModel.model import Model, defaultwords
 
 
 class Baseline(Model):
