@@ -1,0 +1,7 @@
+token.txt
+*__pycache__
+.idea/
+*_save.*
+WordCloudImage/Images/
+WordCloudModel/echo.py
+*.db
