@@ -10,6 +10,7 @@ I encourage you to make your own by inheriting the `Model` class in `WordCloudMo
 - Install the requirements listed in `requirements.txt` with `pip`
 - add a `token.txt` file at the root of the project
 - go to https://discordapp.com/developers/applications/ create your app, add a User Bot to it and paste its Client ID in `token.txt`
+- invite your bot on a Discord Server https://discordpy.readthedocs.io/en/latest/discord.html#inviting-your-bot
 - run the `main.py` with Python 3.5+!
 
 If you wish to invite my version of this bot on your server or if you got any questions about this project, feel free to PM `Inspi#8989` on Discord !
