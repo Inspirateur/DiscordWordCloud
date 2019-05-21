@@ -56,7 +56,7 @@ class ModelCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
-		self.maxmsg: int = 2000
+		self.maxmsg: int = 20000
 		self.maxdays: int = 120
 
 	def _save(self):
