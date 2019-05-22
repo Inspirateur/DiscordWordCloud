@@ -3,7 +3,7 @@ A discord bot that generates a word cloud for each discord user.
 
 The provided model used to generate the word cloud is dumb but fonctionnal, 
 I encourage you to make your own by inheriting the `Model` class in `WordCloudModel/model.py` and importing it as `ModelClass` in `cog_model.py` ! 
-(I personally use a custom model I cannot disclose)
+(I personally use a custom model I unfortunately cannot disclose)
 
 # How to run it
 - Clone the project wherever you want
@@ -29,3 +29,8 @@ Please note that this project is still in development,
 some features like emoji display, real time training, are not implemented yet.
 
 *P.S.: for now there's no real time training, so the bot will automatically train when starting and save its model after training. If a save of its model is present in `WordCloudModel/your_model_save.json` it will load it instead of training, if you don't want that just delete the save before starting the bot.*
+
+# Pictures
+
+![sample image of a word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/cloud_sample.png)
+![sample image of a word top usage](https://github.com/Inspirateur/DiscordWordCloud/blob/master/word_sample.png)
