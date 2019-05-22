@@ -19,6 +19,7 @@ If you wish to invite my version of this bot on your server or if you got any qu
 everyone:
 - `;cloud (<user(s)>)` to generate your word cloud, you can also tag users to generate their clouds
 - `;word <word>` to get a list of the top \<word> users in your server
+- `;emojis` to get the podium of emojis in the guild
 
 Requires manage channel permission:
 - `;ignore <channel(s)>` to make make the bot ignore <channel(s)> while training the model
