@@ -1,6 +1,8 @@
+from collections import Counter
 from datetime import datetime, timedelta
+import json
 from time import time
-from typing import List, Tuple, Set
+from typing import Dict, List, Tuple, Set
 import discord.ext.commands as commands
 from discord import Activity, ActivityType, File, Message, Member
 from Management import ignored
@@ -56,6 +58,8 @@ class ModelCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
+		# a simple <word, <user, count>> used for misc commands
+		self.words: Dict[str, Counter] = {}
 		self.maxmsg: int = 20000
 		self.maxdays: int = 120
 
@@ -63,11 +67,17 @@ class ModelCog(commands.Cog):
 		with open(f"WordCloudModel/{ModelClass.__name__}_save.json", "w") as fjson:
 			fjson.write(self.model.serialize())
 			print(f"{ModelClass.__name__} saved")
+		with open(f"words_save.json", "w") as wjson:
+			wjson.write(json.dumps(self.words))
+			print("words saved")
 
 	def _load(self):
 		with open(f"WordCloudModel/{ModelClass.__name__}_save.json", "r") as fjson:
 			self.model = ModelClass.parse(fjson.read())
-			print(f"{ModelClass.__name__} loaded from save")
+		with open(f"words_save.json", "r") as wjson:
+			self.words = json.load(wjson)
+		print(f"{ModelClass.__name__} loaded from save")
+		print("words loaded from save")
 
 	def add_to_model(self, msg: Message, n: int = 3):
 		userid = str(msg.author.id)
@@ -76,6 +86,9 @@ class ModelCog(commands.Cog):
 		# add the content of the message as n-grams to echo
 		for token in tokens:
 			self.model.add(userid, token)
+			if token not in self.words:
+				self.words[token] = Counter()
+			self.words[token][userid] += 1
 		for i in range(2, n+1):
 			for j in range(len(tokens)-i+1):
 				self.model.add(userid, " ".join(tokens[j:j+i]), 1.5/n)
@@ -125,6 +138,8 @@ class ModelCog(commands.Cog):
 		try:
 			self._load()
 		except FileNotFoundError:
+			self.model = ModelClass()
+			self.words = {}
 			await self.bot.change_presence(activity=Activity(name="your messages", type=ActivityType.watching))
 			await self.load_from_discord()
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))

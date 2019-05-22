@@ -27,19 +27,6 @@ class Baseline(Model):
 			return defaultwords
 		return self.count[source].most_common()[round(len(self.count[source])/10.0):]
 
-	def word_use(self, word: str) -> List[Tuple[str, float]]:
-		res = []
-		for user in self.count:
-			if word in user:
-				res.append((user, self.count[user][word]))
-		return sorted(res, key=lambda x: x[1], reverse=True)
-
-	def word_use_count(self, word: str) -> int:
-		total = 0
-		for user in self.count:
-			total += self.count[user][word]
-		return total
-
 	def serialize(self) -> str:
 		return json.dumps(self.count)
 
