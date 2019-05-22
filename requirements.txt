@@ -1,3 +1,5 @@
 discord.py
 wordcloud
 matplotlib
+pillow
+requests

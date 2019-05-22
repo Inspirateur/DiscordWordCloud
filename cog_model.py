@@ -6,8 +6,9 @@ from time import time
 from typing import Dict, List, Tuple, Union, Set
 import discord.ext.commands as commands
 from discord import Activity, ActivityType, Emoji, File, Message, Member, TextChannel
+from emoji_loader import EmojiLoader
 from Management import ignored
-from WordCloudImage.make_image import simple_image
+import WordCloudImage.make_image as make_image
 from WordCloudModel.model import Model
 try:
 	from WordCloudModel.echo import Echo as ModelClass
@@ -110,6 +111,9 @@ class ModelCog(commands.Cog):
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print(f"Logged on as {self.bot.user}!")
+		print("load custom emoji images in the background")
+		emoloader = EmojiLoader(self.bot, make_image.emo_imgs)
+		emoloader.start()
 		try:
 			self._load()
 		except FileNotFoundError:
@@ -181,7 +185,7 @@ class ModelCog(commands.Cog):
 			mentions.append(ctx.author)
 		async with ctx.channel.typing():
 			for member in mentions:
-				image = simple_image(self.resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)))
+				image = make_image.simple_image(self.resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)))
 				await ctx.channel.send(
 					content=f"**{member.display_name}**'s Word Cloud ({ModelClass.__name__}):",
 					file=File(fp=image, filename=f"{member.display_name}_word_cloud.png")
