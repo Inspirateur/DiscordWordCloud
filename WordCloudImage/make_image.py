@@ -1,6 +1,7 @@
 import io
 from typing import Dict, List, Tuple, Union
 from discord import Emoji
+import numpy as np
 from PIL import Image
 import requests
 from wordcloud import WordCloud
@@ -16,6 +17,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	"""
 	if len(words) <= 0:
 		words = defaultwords
+	mask = np.zeros(shape=(200, 400), dtype=int)
 	dictwords = {}
 	for (word, value) in words:
 		if isinstance(word, Emoji):
@@ -26,8 +28,9 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 		else:
 			dictwords[word] = value
 	imgobject = WordCloud(
-			"WordCloudImage/Fonts/OpenSansEmoji.otf", scale=2, max_words=None,
-			background_color=None, mode="RGBA").fit_words(dictwords).to_image()
+		"WordCloudImage/Fonts/OpenSansEmoji.otf", scale=2, max_words=None, mask=mask,
+		contour_width=4, background_color=None, mode="RGB"
+	).fit_words(dictwords).to_image()
 	imgbytes = io.BytesIO()
 	imgobject.save(imgbytes, format='PNG')
 	imgbytes.seek(0)
