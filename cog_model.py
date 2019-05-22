@@ -1,59 +1,20 @@
 from collections import Counter
 from datetime import datetime, timedelta
 import json
+import re
 from time import time
-from typing import Dict, List, Tuple, Set
+from typing import Dict, List, Tuple, Union, Set
 import discord.ext.commands as commands
-from discord import Activity, ActivityType, File, Message, Member, TextChannel
+from discord import Activity, ActivityType, Emoji, File, Message, Member, TextChannel
 from Management import ignored
-from WordCloudImage.make_image import virtual_image
+from WordCloudImage.make_image import simple_image
 from WordCloudModel.model import Model
 try:
 	from WordCloudModel.echo import Echo as ModelClass
 except ImportError:
 	from WordCloudModel.baseline import Baseline as ModelClass
 puncmap = str.maketrans({',': ' ', '.': ' ', '\n': ' ', '—': ' ', ';': ' ', '’': '\''})
-
-
-def resolve_tag(ctx, w: str) -> str:
-	if len(w) > 3:
-		if w.startswith("<") and w.endswith(">"):
-			if w[1] == '@':
-				if w[2] == '&':
-					# it's a role tag, we resolve it
-					role = ctx.guild.get_role(int(w[3:-1]))
-					if role is not None:
-						return "@" + role.name
-				else:
-					# it's a user tag, we resolve it
-					if w[2] == '!':
-						user_id = w[3:-1]
-					else:
-						user_id = w[2:-1]
-					member = ctx.guild.get_member(int(user_id))
-					if member is not None:
-						return "@" + member.name
-			elif w[1] == '#':
-				# it's a channel tag, we resolve it
-				channel = ctx.guild.get_channel(int(w[2:-1]))
-				if channel is not None:
-					return '#' + channel.name
-			elif w[1] == ':':
-				# it's probably an emoji
-				emojisplit: List[str] = w[2:-1].split(':')
-				if len(emojisplit) == 2 and emojisplit[1].isdigit():
-					return f":{emojisplit[0]}:"
-	return w
-
-
-def resolve_words(ctx, wordcloud: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
-	if not isinstance(ctx.channel, TextChannel):
-		return wordcloud
-	# resolve the tags
-	tagresolved = []
-	for (ngram, value) in wordcloud:
-		tagresolved.append((" ".join([resolve_tag(ctx, w) for w in ngram.split(" ")]), value))
-	return tagresolved
+emoreg = re.compile(r'<a?:[^:]+:[0-9]+>')
 
 
 class ModelCog(commands.Cog):
@@ -64,6 +25,7 @@ class ModelCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
+		self.emojis: Dict[int, Emoji] = {}
 		# a simple <word, <user, count>> used for misc commands
 		self.words: Dict[str, Counter] = {}
 		self.maxmsg: int = 20000
@@ -88,16 +50,23 @@ class ModelCog(commands.Cog):
 	def add_to_model(self, msg: Message, n: int = 3):
 		userid = str(msg.author.id)
 		# split the message content with the most basic tokenization
-		tokens: List = list(filter(bool, msg.content.lower().translate(puncmap).split(' ')))
-		# add the content of the message as n-grams to echo
+		tokens: List = list(filter(bool, msg.content.translate(puncmap).split(' ')))
+		# separate the emojis from the words
+		words: List = []
 		for token in tokens:
-			self.model.add(userid, token)
-			if token not in self.words:
-				self.words[token] = Counter()
-			self.words[token][userid] += 1
+			if emoreg.match(token):
+				self.model.add(userid, token)
+			else:
+				words.append(token.lower())
+		# add the content of the message as n-grams to echo
+		for word in words:
+			self.model.add(userid, word)
+			if word not in self.words:
+				self.words[word] = Counter()
+			self.words[word][userid] += 1
 		for i in range(2, n+1):
-			for j in range(len(tokens)-i+1):
-				self.model.add(userid, " ".join(tokens[j:j+i]), 1.0/n)
+			for j in range(len(words)-i+1):
+				self.model.add(userid, " ".join(words[j:j+i]), 1.0/n)
 
 	async def load_from_discord(self):
 		# the limit date, all read messages are after it
@@ -151,6 +120,59 @@ class ModelCog(commands.Cog):
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))
 		print("Ready")
 
+	def resolve_tag(self, ctx, w: str) -> Union[str, Emoji]:
+		if len(w) > 3:
+			if w.startswith("<") and w.endswith(">"):
+				if w[1] == '@':
+					if w[2] == '&':
+						# it's a role tag, we resolve it
+						role = ctx.guild.get_role(int(w[3:-1]))
+						if role is not None:
+							return "@" + role.name
+					else:
+						# it's a user tag, we resolve it
+						if w[2] == '!':
+							user_id = w[3:-1]
+						else:
+							user_id = w[2:-1]
+						member: Member = ctx.guild.get_member(int(user_id))
+						if member is not None:
+							return "@" + member.name
+				elif w[1] == '#':
+					# it's a channel tag, we resolve it
+					channel = ctx.guild.get_channel(int(w[2:-1]))
+					if channel is not None:
+						return '#' + channel.name
+				elif w[1] == ':' or w[1] == 'a':
+					# it's probably an emoji
+					emojisplit: List[str] = w[:-1].split(':')
+					if len(emojisplit) == 3:
+						try:
+							# try to get the emoji from its ID
+							emoji: Emoji = self.bot.get_emoji(int(emojisplit[2]))
+							if emoji is not None:
+								# we got one, return the emoji object
+								return emoji
+							else:
+								# we couldn't get it, return the name in emoji format
+								return f':{emojisplit[1]}:'
+						except ValueError:
+							pass
+		return w
+
+	def resolve_words(self, ctx, wordcloud: List[Tuple[str, float]]) -> List[Tuple[Union[str, Emoji], float]]:
+		if not isinstance(ctx.channel, TextChannel):
+			return wordcloud
+		# resolve the tags
+		tagresolved = []
+		for (ngram, value) in wordcloud:
+			words = ngram.split(" ")
+			if len(words) == 1:
+				tagresolved.append((self.resolve_tag(ctx, words[0]), value))
+			else:
+				tagresolved.append((" ".join([self.resolve_tag(ctx, w) for w in words]), value))
+		return tagresolved
+
 	@commands.command(brief="- Request your or other's word cloud !")
 	async def cloud(self, ctx):
 		print(f"{ctx.author.name}#{ctx.author.discriminator} requested a wordcloud !")
@@ -159,7 +181,7 @@ class ModelCog(commands.Cog):
 			mentions.append(ctx.author)
 		async with ctx.channel.typing():
 			for member in mentions:
-				image = virtual_image(resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)))
+				image = simple_image(self.resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)))
 				await ctx.channel.send(
 					content=f"**{member.display_name}**'s Word Cloud ({ModelClass.__name__}):",
 					file=File(fp=image, filename=f"{member.display_name}_word_cloud.png")
