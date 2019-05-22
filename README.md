@@ -5,6 +5,8 @@ The provided model used to generate the word cloud is dumb but fonctionnal,
 I encourage you to make your own by inheriting the `Model` class in `WordCloudModel/model.py` and importing it as `ModelClass` in `cog_model.py` ! 
 (I personally use a custom model I cannot disclose)
 
+![sample image of a word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/cloud_sample.png)
+
 # How to run it
 - Clone the project wherever you want
 - Install the requirements listed in `requirements.txt` with `pip`
