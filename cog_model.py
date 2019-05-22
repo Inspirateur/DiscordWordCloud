@@ -69,7 +69,7 @@ class ModelCog(commands.Cog):
 			self.model = ModelClass.parse(fjson.read())
 			print(f"{ModelClass.__name__} loaded from save")
 
-	def add_to_model(self, msg: Message, n: int = 1):
+	def add_to_model(self, msg: Message, n: int = 3):
 		userid = str(msg.author.id)
 		# split the message content with the most basic tokenization
 		tokens: List = list(filter(bool, msg.content.lower().translate(puncmap).split(' ')))
@@ -78,7 +78,7 @@ class ModelCog(commands.Cog):
 			self.model.add(userid, token)
 		for i in range(2, n+1):
 			for j in range(len(tokens)-i+1):
-				self.model.add(userid, " ".join(tokens[j:j+i]))
+				self.model.add(userid, " ".join(tokens[j:j+i]), 1.5/n)
 
 	async def load_from_discord(self):
 		# the limit date, all read messages are after it

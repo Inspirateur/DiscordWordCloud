@@ -11,6 +11,7 @@ class Baseline(Model):
 	(which should be filled with common words)
 	"""
 	def __init__(self):
+		# <source, <word, count>>
 		self.count: Dict[str, Counter] = {}
 
 	def __contains__(self, item):
@@ -27,7 +28,17 @@ class Baseline(Model):
 		return self.count[source].most_common()[round(len(self.count[source])/10.0):]
 
 	def word_use(self, word: str) -> List[Tuple[str, float]]:
-		return sorted([(user, c) for user, c in self.count[word.lower()].items()], key=lambda x: x[1], reverse=True)
+		res = []
+		for user in self.count:
+			if word in user:
+				res.append((user, self.count[user][word]))
+		return sorted(res, key=lambda x: x[1], reverse=True)
+
+	def word_use_count(self, word: str) -> int:
+		total = 0
+		for user in self.count:
+			total += self.count[user][word]
+		return total
 
 	def serialize(self) -> str:
 		return json.dumps(self.count)
