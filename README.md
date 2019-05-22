@@ -35,3 +35,8 @@ some features like emoji display, real time training, are not implemented yet.
 
 ![sample image of a word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/cloud_sample.png)
 ![sample image of a word top usage](https://github.com/Inspirateur/DiscordWordCloud/blob/master/word_sample.png)
+
+# Powered by:
+
+- discord.py: https://github.com/Rapptz/discord.py
+- WordCloud: https://github.com/amueller/word_cloud
