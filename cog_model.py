@@ -97,7 +97,7 @@ class ModelCog(commands.Cog):
 			self.words[token][userid] += 1
 		for i in range(2, n+1):
 			for j in range(len(tokens)-i+1):
-				self.model.add(userid, " ".join(tokens[j:j+i]), 1.5/n)
+				self.model.add(userid, " ".join(tokens[j:j+i]), 1.0/n)
 
 	async def load_from_discord(self):
 		# the limit date, all read messages are after it
