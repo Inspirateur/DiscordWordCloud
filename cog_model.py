@@ -4,7 +4,7 @@ import json
 from time import time
 from typing import Dict, List, Tuple, Set
 import discord.ext.commands as commands
-from discord import Activity, ActivityType, File, Message, Member
+from discord import Activity, ActivityType, File, Message, Member, TextChannel
 from Management import ignored
 from WordCloudImage.make_image import virtual_image
 from WordCloudModel.model import Model
@@ -47,6 +47,8 @@ def resolve_tag(ctx, w: str) -> str:
 
 
 def resolve_words(ctx, wordcloud: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
+	if not isinstance(ctx.channel, TextChannel):
+		return wordcloud
 	# resolve the tags
 	tagresolved = []
 	for (ngram, value) in wordcloud:
