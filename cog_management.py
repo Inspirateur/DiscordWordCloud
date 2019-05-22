@@ -14,7 +14,7 @@ class ManagementCog(commands.Cog):
 			return "Ignored channels: " + ", ".join([f"<#{chanid}>" for chanid in ignoredchans]) \
 				+ f"\nUse `{self.bot.command_prefix}listen <channel(s)>` to listen to channel(s) again."
 
-	@commands.command(brief="Ignore a channel when reading the messages")
+	@commands.command(brief="- Ignore a channel when reading the messages")
 	async def ignore(self, ctx):
 		if ctx.message.author.guild_permissions.manage_channels:
 			if len(ctx.message.channel_mentions) == 0:
@@ -29,7 +29,7 @@ class ManagementCog(commands.Cog):
 			await ctx.channel.send(
 				f"**{ctx.message.author.display_name}**, You need the **manage channel** permission to use this command.")
 
-	@commands.command(aliases=["unignore"], brief="Listen to a channel when reading the messages")
+	@commands.command(aliases=["unignore"], brief="- Listen to a channel when reading the messages")
 	async def listen(self, ctx):
 		if ctx.message.author.guild_permissions.manage_channels:
 			if len(ctx.message.channel_mentions) == 0:

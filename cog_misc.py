@@ -7,7 +7,7 @@ class MiscCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 
-	@commands.command(brief="Show the top usage of a given word")
+	@commands.command(brief="- Show the top usage of a given word")
 	async def word(self, ctx):
 		modelcog: ModelCog = self.bot.get_cog("ModelCog")
 		try:
@@ -38,7 +38,7 @@ class MiscCog(commands.Cog):
 			await ctx.channel.send(
 				f"Command usage: `{self.bot.command_prefix}word <word>`, it will show you the top usage of <word>.")
 
-	@commands.command(aliases=["emos"], brief="Podium of the custom emojis for this server")
+	@commands.command(aliases=["emos"], brief="- Podium of the custom emojis for this server")
 	async def emojis(self, ctx):
 		modelcog: ModelCog = self.bot.get_cog("ModelCog")
 		podium = []

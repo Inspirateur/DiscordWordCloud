@@ -144,8 +144,8 @@ class ModelCog(commands.Cog):
 			await self.load_from_discord()
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))
 		print("Ready")
-		
-	@commands.command(brief="Request your or other's word cloud !")
+
+	@commands.command(brief="- Request your or other's word cloud !")
 	async def cloud(self, ctx):
 		print(f"{ctx.author.name}#{ctx.author.discriminator} requested a wordcloud !")
 		mentions: List[Member] = ctx.message.mentions
