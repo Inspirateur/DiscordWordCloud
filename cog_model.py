@@ -67,14 +67,14 @@ class ModelCog(commands.Cog):
 		with open(f"WordCloudModel/{ModelClass.__name__}_save.json", "w") as fjson:
 			fjson.write(self.model.serialize())
 			print(f"{ModelClass.__name__} saved")
-		with open(f"words_save.json", "w") as wjson:
+		with open(f"WordCloudModel/words_save.json", "w") as wjson:
 			wjson.write(json.dumps(self.words))
 			print("words saved")
 
 	def _load(self):
 		with open(f"WordCloudModel/{ModelClass.__name__}_save.json", "r") as fjson:
 			self.model = ModelClass.parse(fjson.read())
-		with open(f"words_save.json", "r") as wjson:
+		with open(f"WordCloudModel/words_save.json", "r") as wjson:
 			self.words = json.load(wjson)
 		print(f"{ModelClass.__name__} loaded from save")
 		print("words loaded from save")
@@ -143,7 +143,8 @@ class ModelCog(commands.Cog):
 			await self.bot.change_presence(activity=Activity(name="your messages", type=ActivityType.watching))
 			await self.load_from_discord()
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))
-
+		print("Ready")
+		
 	@commands.command(brief="Request your or other's word cloud !")
 	async def cloud(self, ctx):
 		print(f"{ctx.author.name}#{ctx.author.discriminator} requested a wordcloud !")
