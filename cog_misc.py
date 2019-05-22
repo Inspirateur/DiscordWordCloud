@@ -50,7 +50,10 @@ class MiscCog(commands.Cog):
 				podium.append((emo, 0))
 			total += podium[-1][1]
 		podium.sort(key=lambda x: x[1], reverse=True)
+		top = podium[:min(len(podium), 10)]
+		other = podium[min(len(podium), 10):]
 		txtlist = []
-		for (emoji, count) in podium:
+		for (emoji, count) in top:
 			txtlist.append(f"\t{emoji} {round(100.0*count/total, 2)}%")
+		txtlist.append(" ".join([otheremo for (otheremo, count) in other]))
 		await ctx.channel.send(f"Emoji Podium:\n"+"\n".join(txtlist))
