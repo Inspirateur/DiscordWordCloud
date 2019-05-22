@@ -3,9 +3,6 @@ defaultwords = [("No data", 0.70), ("NaN", 0.25), ("nada", 0.025), ("rien", 0.02
 
 
 class Model:
-	def __contains__(self, item) -> bool:
-		raise NotImplementedError("Abstract __contains__ method of Model wasn't implemented.")
-
 	def add(self, source: str, word: str, weight: float = 1):
 		raise NotImplementedError("Abstract add method of Model wasn't implemented.")
 

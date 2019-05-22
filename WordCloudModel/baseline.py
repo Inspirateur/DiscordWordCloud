@@ -14,9 +14,6 @@ class Baseline(Model):
 		# <source, <word, count>>
 		self.count: Dict[str, Counter] = {}
 
-	def __contains__(self, item):
-		return item in self.count
-
 	def add(self, source: str, word: str, weight: float = 1):
 		if source not in self.count:
 			self.count[source] = Counter()
