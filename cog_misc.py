@@ -6,7 +6,7 @@ class MiscCog(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 
-	@commands.command()
+	@commands.command(brief="Show the top usage of a given word")
 	async def word(self, ctx):
 		modelcog: ModelCog = self.bot.get_cog("ModelCog")
 		try:
@@ -36,3 +36,21 @@ class MiscCog(commands.Cog):
 		except KeyError:
 			await ctx.channel.send(
 				f"Command usage: `{self.bot.command_prefix}word <word>`, it will show you the top usage of <word>.")
+
+	@commands.command(aliases=["emos"], brief="Podium of the custom emojis for this server")
+	async def emojis(self, ctx):
+		modelcog: ModelCog = self.bot.get_cog("ModelCog")
+		podium = []
+		total = 0.0
+		for emoji in ctx.guild.emojis:
+			emo = str(emoji)
+			if emo in modelcog.model:
+				podium.append((emo, modelcog.model.word_use_count(emo)))
+			else:
+				podium.append((emo, 0))
+			total += podium[-1][1]
+		podium.sort(key=lambda x: x[1], reverse=True)
+		txtlist = []
+		for (emoji, count) in podium:
+			txtlist.append(f"\t{emoji} {round(100.0*count/total, 2)}%")
+		await ctx.channel.send(f"Emoji Podium:\n"+"\n".join(txtlist))
