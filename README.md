@@ -27,7 +27,7 @@ Requires manage channel permission:
 (by defaults the bot read all the channel it has read access to)
 
 Please note that this project is still in development, 
-some features like emoji display, real time training, are not implemented yet.
+some features like real time training are not implemented yet.
 
 *P.S.: for now there's no real time training, so the bot will automatically train when starting and save its model after training. If a save of its model is present in `WordCloudModel/your_model_save.json` it will load it instead of training, if you don't want that just delete the save before starting the bot.*
 
