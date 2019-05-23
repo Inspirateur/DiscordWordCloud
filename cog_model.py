@@ -47,7 +47,6 @@ class ModelCog(commands.Cog):
 		print("words loaded from save")
 
 	async def load_from_discord(self):
-		print(f"READING START ({self.limitdate} limit, using {ModelClass.__name__})")
 		# for every Guild
 		for guild in self.bot.guilds:
 			# start a parallel message loader
@@ -57,7 +56,6 @@ class ModelCog(commands.Cog):
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print(f"Logged on as {self.bot.user}!")
-		print("load custom emoji images in the background")
 		# for every Guild
 		for guild in self.bot.guilds:
 			# start a parallel emoji loader

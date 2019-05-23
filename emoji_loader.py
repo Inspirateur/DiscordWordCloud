@@ -13,7 +13,9 @@ class EmojiLoader(Thread):
 		self.emo_imgs: Dict = emo_imgs
 
 	def run(self) -> None:
+		print(f"Start loading emojis for {self.guild.name}")
 		for emoji in self.guild.emojis:
 			if emoji.id not in self.emo_imgs:
 				response = requests.get(emoji.url)
 				self.emo_imgs[emoji.id] = Image.open(io.BytesIO(response.content))
+		print(f"Finished loading emojis for {self.guild.name}")

@@ -35,7 +35,7 @@ def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int =
 
 
 async def load_msgs(guild: Guild, model: Model, words: Dict[str, Counter], limitdate: datetime, maxmsg: int) -> None:
-	print(f"Reading start for {guild.name}")
+	print(f"Start reading messages for {guild.name}")
 	# get the member object representing the bot
 	memberself = guild.me
 	# get a set of ignored channel ids for this guild
@@ -44,7 +44,7 @@ async def load_msgs(guild: Guild, model: Model, words: Dict[str, Counter], limit
 	for channel in guild.text_channels:
 		# if we can and must read the channel
 		if channel.permissions_for(memberself).read_messages and channel.id not in ignoredchans:
-			print(f"{channel.guild.name}#{channel.name}")
+			print(f"\t{channel.guild.name}#{channel.name}")
 			# for every message in the channel after the limit date, from new to old
 			async for message in channel.history(limit=maxmsg, after=limitdate, oldest_first=False):
 				if not message.author.bot:
@@ -53,4 +53,4 @@ async def load_msgs(guild: Guild, model: Model, words: Dict[str, Counter], limit
 				for reaction in message.reactions:
 					async for user in reaction.users():
 						model.add(str(user.id), str(reaction.emoji))
-	print(f"Reading over for {guild.name}")
+	print(f"Finished reading messages for {guild.name}")
