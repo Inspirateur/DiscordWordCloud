@@ -4,7 +4,7 @@ from discord import Emoji
 import numpy as np
 from PIL import Image
 from random import randint
-import requests
+from urllib.request import Request, urlopen
 from wordcloud import WordCloud
 from WordCloudModel.model import defaultwords
 # TODO: for an obscure reason i can't type hint this
@@ -45,8 +45,9 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	for (word, value) in words:
 		if isinstance(word, Emoji):
 			if word.id not in emo_imgs:
-				response = requests.get(word.url)
-				emo_imgs[word.id] = Image.open(io.BytesIO(response.content))
+				emo_imgs[word.id] = Image.open(io.BytesIO(urlopen(
+					Request(str(word.url), headers={'User-Agent': 'Mozilla/5.0'})
+				).read()))
 			emolist.append((word, value))
 		else:
 			dictwords[word] = value

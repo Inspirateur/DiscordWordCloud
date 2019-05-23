@@ -1,5 +1,4 @@
 discord.py
 wordcloud
-matplotlib
 numpy
 pillow
