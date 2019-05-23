@@ -2,7 +2,7 @@ import discord.ext.commands as commands
 from Management import ignored
 
 
-class ManagementCog(commands.Cog):
+class Management(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 

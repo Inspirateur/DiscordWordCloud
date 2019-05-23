@@ -1,17 +1,17 @@
 from typing import List, Tuple
 import discord.ext.commands as commands
 from discord import TextChannel
-from cog_model import ModelCog
+from cog_cloud import Cloud
 
 
-class MiscCog(commands.Cog):
+class Misc(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 
 	@commands.command(brief="- Show the top usage of a given word")
 	async def word(self, ctx):
 		if isinstance(ctx.channel, TextChannel):
-			modelcog: ModelCog = self.bot.get_cog("ModelCog")
+			modelcog: Cloud = self.bot.get_cog("Cloud")
 			try:
 				w: str = ctx.message.content.lower().split(" ")[1].strip()
 				if w not in modelcog.words[ctx.guild.id]:
@@ -45,7 +45,7 @@ class MiscCog(commands.Cog):
 	@commands.command(aliases=["emos"], brief="- Podium of the custom emojis for this server")
 	async def emojis(self, ctx):
 		if isinstance(ctx.channel, TextChannel):
-			modelcog: ModelCog = self.bot.get_cog("ModelCog")
+			modelcog: Cloud = self.bot.get_cog("Cloud")
 			podium = []
 			total = 0.0
 			for emoji in ctx.guild.emojis:

@@ -44,7 +44,6 @@ async def load_msgs(guild: Guild, model: Model, words: Dict[str, Counter], limit
 	for channel in guild.text_channels:
 		# if we can and must read the channel
 		if channel.permissions_for(memberself).read_messages and channel.id not in ignoredchans:
-			print(f"\t{channel.guild.name}#{channel.name}")
 			# for every message in the channel after the limit date, from new to old
 			async for message in channel.history(limit=maxmsg, after=limitdate, oldest_first=False):
 				if not message.author.bot:

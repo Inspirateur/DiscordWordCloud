@@ -1,11 +1,11 @@
 from discord.ext.commands import Bot
-from cog_model import ModelCog
-from cog_management import ManagementCog
-from cog_misc import MiscCog
+from cog_cloud import Cloud
+from cog_management import Management
+from cog_misc import Misc
 bot = Bot(command_prefix=';')
-bot.add_cog(ModelCog(bot))
-bot.add_cog(ManagementCog(bot))
-bot.add_cog(MiscCog(bot))
+bot.add_cog(Cloud(bot))
+bot.add_cog(Management(bot))
+bot.add_cog(Misc(bot))
 
 
 try:

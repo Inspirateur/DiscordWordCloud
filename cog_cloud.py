@@ -15,7 +15,7 @@ except ImportError:
 	from WordCloudModel.baseline import Baseline as ModelClass
 
 
-class ModelCog(commands.Cog):
+class Cloud(commands.Cog):
 	# TODO: implement basic real time training (compatible with save/load):
 	# 	if there's no save: train, and save with the date of the last read message
 	# 	if there a save: get the date of last read message, and complete the training from there
