@@ -55,17 +55,16 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	# boxlist is (emoji_id, x, y, size)
 	boxlist: List[Tuple[int, int, int, int]] = []
 	for (emoji, value) in emolist:
-		size = round(16*height*value/total)
-		if size >= 16:
-			x = randint(0, width-size)
-			y = randint(0, height-size)
-			trycount = 0
-			while trycount < 10 and is_overlapping(boxlist, x, y, size):
-				x = randint(0, width - size)
-				y = randint(0, height - size)
-				trycount += 1
-			add_square(mask, x, y, size)
-			boxlist.append((emoji.id, x, y, size))
+		size = max(16, min(round(height/2), round(16*height*value/total)))
+		x = randint(0, width-size)
+		y = randint(0, height-size)
+		trycount = 0
+		while trycount < 10 and is_overlapping(boxlist, x, y, size):
+			x = randint(0, width - size)
+			y = randint(0, height - size)
+			trycount += 1
+		add_square(mask, x, y, size)
+		boxlist.append((emoji.id, x, y, size))
 	# generate the image
 	imgobject: Image = WordCloud(
 		"WordCloudImage/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
