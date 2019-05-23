@@ -2,7 +2,7 @@ import io
 from threading import Thread
 from typing import Dict
 from discord import Guild
-import requests
+from urllib.request import Request, urlopen
 from PIL import Image
 
 
@@ -16,6 +16,7 @@ class EmojiLoader(Thread):
 		print(f"Start loading emojis for {self.guild.name}")
 		for emoji in self.guild.emojis:
 			if emoji.id not in self.emo_imgs:
-				response = requests.get(emoji.url)
-				self.emo_imgs[emoji.id] = Image.open(io.BytesIO(response.content))
+				self.emo_imgs[emoji.id] = Image.open(io.BytesIO(urlopen(
+					Request(str(emoji.url), headers={'User-Agent': 'Mozilla/5.0'})
+				).read()))
 		print(f"Finished loading emojis for {self.guild.name}")

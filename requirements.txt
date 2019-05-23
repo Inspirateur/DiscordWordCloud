@@ -3,4 +3,3 @@ wordcloud
 matplotlib
 numpy
 pillow
-requests
