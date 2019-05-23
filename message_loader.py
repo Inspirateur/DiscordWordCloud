@@ -2,12 +2,12 @@ from collections import Counter
 from datetime import datetime
 from typing import Dict, List, Set
 import re
-from urllib3.util import parse_url
 from discord import Guild, Message
 import Management.ignored as ignored
 from WordCloudModel.model import Model
 puncmap = str.maketrans({',': ' ', '.': ' ', '\n': ' ', '—': ' ', ';': ' ', '’': '\''})
 emoreg = re.compile(r'<a?:[^:]+:[0-9]+>')
+urlreg = re.compile(r'https?://(?:www.)?([^/]+)')
 
 
 def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 3):
@@ -23,18 +23,15 @@ def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int =
 			if token not in words:
 				words[token] = Counter()
 			words[token][userid] += 1
-		elif token.startswith("http"):
-			# the token is most likely an url
-			url = parse_url(token)
-			if len(url.host) > 0:
+		else:
+			match = urlreg.match(token)
+			if match:
+				# the token is most likely an url
 				# we append the host to the wordlist
-				wordslist.append(url.host)
+				wordslist.append(match.group(1))
 			else:
 				# it wasn't an url, we treat the token as a word
 				wordslist.append(token.translate(puncmap).lower())
-		else:
-			# it's probably a word (possibly with punctuation), we treat it and append it
-			wordslist.append(token.translate(puncmap).lower())
 	# add the content of the message as n-grams to echo
 	for word in wordslist:
 		model.add(userid, word)
