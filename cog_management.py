@@ -43,3 +43,12 @@ class ManagementCog(commands.Cog):
 		else:
 			await ctx.channel.send(
 				f"**{ctx.message.author.display_name}**, You need the **manage channel** permission to use this command.")
+
+	@commands.command()
+	async def info(self, ctx):
+		await ctx.channel.send(
+			"**Author**: Inspi#8989 *(PM open if you got any question, FR/EN)*\n"
+			"**Invite Link**: https://discordapp.com/api/oauth2/authorize?client_id=575778045021913139&permissions=0&scope=bot\n"
+			"**GitHub**: https://github.com/Inspirateur/DiscordWordCloud\n"
+			"*Thanks to Koku#5200 for helping with the model !*"
+		)

@@ -1,21 +1,18 @@
+from asyncio.tasks import create_task
 from collections import Counter
 from datetime import datetime, timedelta
 import json
-import re
-from time import time
-from typing import Dict, List, Tuple, Union, Set
+from typing import Dict, List, Tuple, Union
 import discord.ext.commands as commands
-from discord import Activity, ActivityType, Emoji, File, Message, Member, TextChannel
+from discord import Activity, ActivityType, Emoji, File, Member, TextChannel
 from emoji_loader import EmojiLoader
-from Management import ignored
+from message_loader import load_msgs
 import WordCloudImage.make_image as make_image
 from WordCloudModel.model import Model
 try:
 	from WordCloudModel.echo import Echo as ModelClass
 except ImportError:
 	from WordCloudModel.baseline import Baseline as ModelClass
-puncmap = str.maketrans({',': ' ', '.': ' ', '\n': ' ', '—': ' ', ';': ' ', '’': '\''})
-emoreg = re.compile(r'<a?:[^:]+:[0-9]+>')
 
 
 class ModelCog(commands.Cog):
@@ -27,10 +24,11 @@ class ModelCog(commands.Cog):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
 		self.emojis: Dict[int, Emoji] = {}
-		# a simple <word, <user, count>> used for misc commands
-		self.words: Dict[str, Counter] = {}
+		# a simple <guildID, <word, <user, count>>> used for misc commands
+		self.words: Dict[int, Dict[str, Counter]] = {}
 		self.maxmsg: int = 20000
 		self.maxdays: int = 120
+		self.limitdate: datetime = datetime.now() - timedelta(days=self.maxdays)
 
 	def _save(self):
 		with open(f"WordCloudModel/{ModelClass.__name__}_save.json", "w") as fjson:
@@ -48,84 +46,33 @@ class ModelCog(commands.Cog):
 		print(f"{ModelClass.__name__} loaded from save")
 		print("words loaded from save")
 
-	def add_to_model(self, msg: Message, n: int = 3):
-		userid = str(msg.author.id)
-		# split the message content with the most basic tokenization
-		tokens: List = list(filter(bool, msg.content.translate(puncmap).split(' ')))
-		# separate the emojis from the words
-		words: List = []
-		for token in tokens:
-			if emoreg.match(token):
-				self.model.add(userid, token)
-				if token not in self.words:
-					self.words[token] = Counter()
-				self.words[token][userid] += 1
-			else:
-				words.append(token.lower())
-		# add the content of the message as n-grams to echo
-		for word in words:
-			self.model.add(userid, word)
-			if word not in self.words:
-				self.words[word] = Counter()
-			self.words[word][userid] += 1
-		for i in range(2, n+1):
-			for j in range(len(words)-i+1):
-				self.model.add(userid, " ".join(words[j:j+i]), 1.0/n)
-
 	async def load_from_discord(self):
-		# the limit date, all read messages are after it
-		deltalimit: timedelta = timedelta(days=self.maxdays)
-		limitdate: datetime = datetime.now() - deltalimit
-		print(f"READING START ({deltalimit.days} days limit, using {ModelClass.__name__})")
-		start = time()
+		print(f"READING START ({self.limitdate} limit, using {ModelClass.__name__})")
 		# for every Guild
 		for guild in self.bot.guilds:
-			# get the member object representing the bot
-			memberself = guild.me
-			# get a set of ignored channel ids for this guild
-			ignoredchans: Set[int] = set(ignored.ignore_list(guild.id))
-			# for every readable channel
-			for channel in guild.text_channels:
-				if channel.permissions_for(memberself).read_messages:
-					cstart = time()
-					print(f"{channel.guild.name}#{channel.name} ... ", end='')
-					if channel.id in ignoredchans:
-						print("IGNORED")
-					else:
-						# for every message in the channel after the limit date, from new to old
-						message = None
-						count = 0
-						async for message in channel.history(limit=self.maxmsg, after=limitdate, oldest_first=False):
-							count += 1
-							if not message.author.bot:
-								self.add_to_model(message)
-							# also add the reactions to echo if there's any
-							for reaction in message.reactions:
-								async for user in reaction.users():
-									self.model.add(str(user.id), str(reaction.emoji))
-						if message is not None and count >= self.maxmsg:
-							warning = f"  /!\\ max msg reached, could only read {(datetime.now() - message.created_at).days} days"
-						else:
-							warning = ""
-						print(f"done ({round(time() - cstart, 2)} sec | {count} msg){warning}")
-		print(f"READING OVER ({round(time() - start, 1)} sec)")
-		self._save()
+			# start a parallel message loader
+			self.words[guild.id] = {}
+			create_task(load_msgs(guild, self.model, self.words[guild.id], self.limitdate, self.maxmsg))
 
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print(f"Logged on as {self.bot.user}!")
 		print("load custom emoji images in the background")
-		emoloader = EmojiLoader(self.bot, make_image.emo_imgs)
-		emoloader.start()
-		try:
-			self._load()
-		except FileNotFoundError:
-			self.model = ModelClass()
-			self.words = {}
-			await self.bot.change_presence(activity=Activity(name="your messages", type=ActivityType.watching))
-			await self.load_from_discord()
+		# for every Guild
+		for guild in self.bot.guilds:
+			# start a parallel emoji loader
+			emoloader = EmojiLoader(guild, make_image.emo_imgs)
+			emoloader.start()
+		self.model = ModelClass()
+		self.words = {}
+		await self.bot.change_presence(activity=Activity(name="your messages", type=ActivityType.watching))
+		await self.load_from_discord()
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))
-		print("Ready")
+
+	@commands.Cog.listener()
+	async def on_guild_join(self, guild):
+		self.words[guild.id] = {}
+		create_task(load_msgs(guild, self.model, self.words[guild.id], self.limitdate, self.maxmsg))
 
 	def resolve_tag(self, ctx, w: str) -> Union[str, Emoji]:
 		if len(w) > 3:

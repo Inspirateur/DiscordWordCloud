@@ -14,10 +14,10 @@ class MiscCog(commands.Cog):
 			modelcog: ModelCog = self.bot.get_cog("ModelCog")
 			try:
 				w: str = ctx.message.content.lower().split(" ")[1].strip()
-				if w not in modelcog.words:
+				if w not in modelcog.words[ctx.guild.id]:
 					await ctx.channel.send(f"'{w}' ? What's that :o ?")
 				else:
-					worduse: List[Tuple[str, int]] = sorted(list(modelcog.words[w].items()), key=lambda x: x[1], reverse=True)
+					worduse: List[Tuple[str, int]] = sorted(list(modelcog.words[ctx.guild.id][w].items()), key=lambda x: x[1], reverse=True)
 					resolved = []
 					total: float = 0.0
 					maxlen: int = 0
@@ -50,8 +50,8 @@ class MiscCog(commands.Cog):
 			total = 0.0
 			for emoji in ctx.guild.emojis:
 				emo = str(emoji)
-				if emo in modelcog.words:
-					podium.append((emo, sum(modelcog.words[emo].values())))
+				if emo in modelcog.words[ctx.guild.id]:
+					podium.append((emo, sum(modelcog.words[ctx.guild.id][emo].values())))
 				else:
 					podium.append((emo, 0))
 				total += podium[-1][1]
