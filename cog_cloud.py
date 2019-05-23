@@ -63,7 +63,6 @@ class Cloud(commands.Cog):
 			emoloader.start()
 		self.model = ModelClass()
 		self.words = {}
-		await self.bot.change_presence(activity=Activity(name="your messages", type=ActivityType.watching))
 		await self.load_from_discord()
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))
 
