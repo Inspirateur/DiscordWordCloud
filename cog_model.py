@@ -57,6 +57,9 @@ class ModelCog(commands.Cog):
 		for token in tokens:
 			if emoreg.match(token):
 				self.model.add(userid, token)
+				if token not in self.words:
+					self.words[token] = Counter()
+				self.words[token][userid] += 1
 			else:
 				words.append(token.lower())
 		# add the content of the message as n-grams to echo
@@ -158,8 +161,8 @@ class ModelCog(commands.Cog):
 								# we got one, return the emoji object
 								return emoji
 							else:
-								# we couldn't get it, return the name in emoji format
-								return f':{emojisplit[1]}:'
+								# we couldn't get it, raise key error
+								raise KeyError
 						except ValueError:
 							pass
 		return w
@@ -170,11 +173,14 @@ class ModelCog(commands.Cog):
 		# resolve the tags
 		tagresolved = []
 		for (ngram, value) in wordcloud:
-			words = ngram.split(" ")
-			if len(words) == 1:
-				tagresolved.append((self.resolve_tag(ctx, words[0]), value))
-			else:
-				tagresolved.append((" ".join([self.resolve_tag(ctx, w) for w in words]), value))
+			try:
+				words = ngram.split(" ")
+				if len(words) == 1:
+					tagresolved.append((self.resolve_tag(ctx, words[0]), value))
+				else:
+					tagresolved.append((" ".join([self.resolve_tag(ctx, w) for w in words]), value))
+			except KeyError:
+				pass
 		return tagresolved
 
 	@commands.command(brief="- Request your or other's word cloud !")
