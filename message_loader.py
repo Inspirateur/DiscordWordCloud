@@ -24,13 +24,13 @@ def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int =
 		else:
 			wordslist.append(token.lower())
 	# add the content of the message as n-grams to echo
-	for word in words:
+	for word in wordslist:
 		model.add(userid, word)
-		if word not in wordslist:
+		if word not in words:
 			words[word] = Counter()
 		words[word][userid] += 1
 	for i in range(2, n+1):
-		for j in range(len(words)-i+1):
+		for j in range(len(wordslist)-i+1):
 			model.add(userid, " ".join(wordslist[j:j+i]), 1.0/n)
 
 
