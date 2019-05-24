@@ -56,7 +56,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	# boxlist is (emoji_id, x, y, size)
 	boxlist: List[Tuple[int, int, int, int]] = []
 	for (emoji, value) in emolist:
-		size = max(16, min(round(height/2), round(16*height*value/total)))
+		size = max(16, min(round(height/2), round(4*height*value/total)))
 		x = randint(0, width-size)
 		y = randint(0, height-size)
 		trycount = 0

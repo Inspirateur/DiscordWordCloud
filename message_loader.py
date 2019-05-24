@@ -5,42 +5,35 @@ import re
 from discord import Guild, Message
 import Management.ignored as ignored
 from WordCloudModel.model import Model
-puncmap = str.maketrans({',': ' ', '.': ' ', '\n': ' ', '—': ' ', ';': ' ', '’': '\''})
+puncmap = str.maketrans({',': ' ', '.': ' ', '—': ' ', ';': ' ', '’': '\''})
 emoreg = re.compile(r'<a?:[^:]+:[0-9]+>')
 urlreg = re.compile(r'https?://(?:www.)?([^/]+)')
+globreg = re.compile(r'<a?:[^:]+:[0-9]+>|https?://(?:www.)?([^/\s]+)[^\s]+|[\s*]')
 
 
 def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 3):
 	userid = str(msg.author.id)
-	# split the message content with the most basic tokenization
-	tokens: List = list(filter(bool, msg.content.split(' ')))
-	# separate the emojis from the words
-	wordslist: List = []
-	for token in tokens:
-		if emoreg.match(token):
-			# the token is probably an emoji
-			model.add(userid, token)
-			if token not in words:
-				words[token] = Counter()
-			words[token][userid] += 1
-		else:
-			match = urlreg.match(token)
-			if match:
-				# the token is most likely an url
-				# we append the host to the wordlist
-				wordslist.append(match.group(1))
-			else:
-				# it wasn't an url, we treat the token as a word
-				wordslist.append(token.translate(puncmap).lower())
+	# we get all the emoji for the string
+	emojis: List[str] = emoreg.findall(msg.content)
+	for emoji in emojis:
+		# add it to the model
+		model.add(userid, emoji)
+		# add it to the wordlist
+		if emoji not in words:
+			words[emoji] = Counter()
+		words[emoji][userid] += 1
+
+	# split the message content removing the emojis and keeping only domain name in URLs
+	tokens: List[str] = list(filter(None, globreg.split(msg.content)))
 	# add the content of the message as n-grams to echo
-	for word in wordslist:
+	for word in tokens:
 		model.add(userid, word)
 		if word not in words:
 			words[word] = Counter()
 		words[word][userid] += 1
 	for i in range(2, n+1):
-		for j in range(len(wordslist)-i+1):
-			model.add(userid, " ".join(wordslist[j:j+i]), 1.0/n)
+		for j in range(len(tokens)-i+1):
+			model.add(userid, " ".join(tokens[j:j+i]), 1.0/n)
 
 
 async def load_msgs(guild: Guild, model: Model, words: Dict[str, Counter], limitdate: datetime, maxmsg: int) -> None:
