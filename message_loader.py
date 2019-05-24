@@ -24,7 +24,7 @@ def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int =
 		words[emoji][userid] += 1
 
 	# split the message content removing the emojis and keeping only domain name in URLs
-	tokens: List[str] = list(filter(None, globreg.split(msg.content)))
+	tokens: List[str] = list(filter(None, globreg.split(msg.content.lower())))
 	# add the content of the message as n-grams to echo
 	for word in tokens:
 		model.add(userid, word)
