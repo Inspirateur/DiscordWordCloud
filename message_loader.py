@@ -7,8 +7,8 @@ import Management.ignored as ignored
 from WordCloudModel.model import Model
 puncmap = str.maketrans({',': ' ', '.': ' ', '—': ' ', ';': ' ', '’': '\''})
 emoreg = re.compile(r'<a?:[^:]+:[0-9]+>')
-urlreg = re.compile(r'https?://(?:www.)?([^/]+)')
-globreg = re.compile(r'<a?:[^:]+:[0-9]+>|https?://(?:www.)?([^/\s]+)[^\s]+|[\s*]')
+urlreg = re.compile(r'https?://(?:www.)?([^/\s]+)[^\s]+')
+globreg = re.compile(fr'{emoreg}|{urlreg}|[\s*]')
 
 
 def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 1):
