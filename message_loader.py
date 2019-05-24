@@ -53,5 +53,10 @@ async def load_msgs(guild: Guild, model: Model, words: Dict[str, Counter], limit
 				# also add the reactions to echo if there's any
 				for reaction in message.reactions:
 					async for user in reaction.users():
-						model.add(str(user.id), str(reaction.emoji))
+						emoji = str(reaction.emoji)
+						user_id = str(user.id)
+						model.add(user_id, emoji)
+						if emoji not in words:
+							words[emoji] = Counter()
+						words[emoji][user_id] += 1
 	print(f"Finished reading messages for {guild.name}")
