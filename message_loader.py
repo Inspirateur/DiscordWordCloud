@@ -11,7 +11,7 @@ urlreg = re.compile(r'https?://(?:www.)?([^/]+)')
 globreg = re.compile(r'<a?:[^:]+:[0-9]+>|https?://(?:www.)?([^/\s]+)[^\s]+|[\s*]')
 
 
-def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 3):
+def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 1):
 	userid = str(msg.author.id)
 	# we get all the emoji for the string
 	emojis: List[str] = emoreg.findall(msg.content)
