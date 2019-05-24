@@ -5,26 +5,25 @@ import re
 from discord import Guild, Message
 import Management.ignored as ignored
 from WordCloudModel.model import Model
-puncmap = str.maketrans({',': ' ', '.': ' ', '—': ' ', ';': ' ', '’': '\''})
-emoreg = re.compile(r'<a?:[^:]+:[0-9]+>')
-urlreg = re.compile(r'https?://(?:www.)?([^/\s]+)[^\s]+')
-globreg = re.compile(fr'{emoreg}|{urlreg}|[\s*]')
+globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<..?[0-9]+>)|([\w-]+)|([^\s])')
 
 
 def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 1):
 	userid = str(msg.author.id)
-	# we get all the emoji for the string
-	emojis: List[str] = emoreg.findall(msg.content)
-	for emoji in emojis:
-		# add it to the model
-		model.add(userid, emoji)
-		# add it to the wordlist
-		if emoji not in words:
-			words[emoji] = Counter()
-		words[emoji][userid] += 1
+	tokens: List[str] = []
+	for match in globreg.findall(msg.content):
+		emoji = match[0]
+		token = ''.join(match[1:])
+		if emoji:
+			# add it to the model
+			model.add(userid, emoji)
+			# add it to the wordlist
+			if emoji not in words:
+				words[emoji] = Counter()
+			words[emoji][userid] += 1
+		elif token:
+			tokens.append(token.lower())
 
-	# split the message content removing the emojis and keeping only domain name in URLs
-	tokens: List[str] = list(filter(None, globreg.split(msg.content.lower())))
 	# add the content of the message as n-grams to echo
 	for word in tokens:
 		model.add(userid, word)
