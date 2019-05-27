@@ -27,7 +27,7 @@ class Cloud(commands.Cog):
 			ModelClass().add_n("", ("", ))
 			self.n = 3
 			print(f"{ModelClass.__name__} handles n-grams, we use n=3")
-		except NotImplementedError:
+		except (NotImplementedError, AttributeError):
 			self.n = 1
 			print(f"{ModelClass.__name__} doesn't handle n-grams, we use n=1")
 		self.emojis: Dict[int, Emoji] = {}
