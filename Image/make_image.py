@@ -10,6 +10,10 @@ from Model.model import defaultwords
 # TODO: for an obscure reason i can't type hint this
 # <emoji_id, image>
 emo_imgs: Dict = {}
+# proportions of the resulting image
+width = 400
+height = 200
+scaling = 2
 
 
 def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int):
@@ -29,9 +33,6 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 		words = defaultwords
 	# we limit ourselves to the top 200 words
 	words = words[:200]
-	width = 400
-	height = 200
-	scaling = 2
 	mask = np.zeros(shape=(height, width), dtype=int)
 	dictwords = {}
 	emolist: List[Tuple[Emoji, float]] = []
