@@ -16,10 +16,7 @@ except ImportError:
 
 
 class Cloud(commands.Cog):
-	# TODO: implement basic real time training (compatible with save/load):
-	# 	if there's no save: train, and save with the date of the last read message
-	# 	if there a save: get the date of last read message, and complete the training from there
-	# 	after that: listen to messages and simply use add_to_model
+	# 	TODO: listen to messages and use add_to_model
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()

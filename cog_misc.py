@@ -15,7 +15,7 @@ class Misc(commands.Cog):
 				f"Command usage: `{self.bot.command_prefix}word <word(s)>`, it will show you the top usage of <word(s)>.")
 		elif isinstance(ctx.channel, TextChannel):
 			modelcog: Cloud = self.bot.get_cog("Cloud")
-			words: str = " ".join(args[:min(len(args), modelcog.wordsn)]).lower()
+			words: str = " ".join(args[:modelcog.wordsn]).lower()
 			if words not in modelcog.words[ctx.guild.id]:
 				await ctx.channel.send(f"'{words}' ? What's that :o ?")
 			else:
@@ -57,8 +57,8 @@ class Misc(commands.Cog):
 					podium.append((emo, 0))
 				total += podium[-1][1]
 			podium.sort(key=lambda x: x[1], reverse=True)
-			top = podium[:min(len(podium), 10)]
-			other = podium[min(len(podium), 10):]
+			top = podium[:10]
+			other = podium[10:]
 			if total > 0:
 				txtlist = []
 				for (emoji, count) in top:

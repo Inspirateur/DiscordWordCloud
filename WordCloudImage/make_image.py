@@ -34,7 +34,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	if len(words) <= 0:
 		words = defaultwords
 	# we limit ourselves to the top 200 words
-	words = words[:min(len(words), 200)]
+	words = words[:200]
 	width = 400
 	height = 200
 	scaling = 2
