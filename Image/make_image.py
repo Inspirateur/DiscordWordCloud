@@ -58,24 +58,32 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 			x = randint(0, width-size)
 			y = randint(0, height-size)
 			if not is_overlapping(boxlist, x, y, size):
-				mask[y:y + size, x:x + size] = 255
 				boxlist.append((emoji.id, x, y, size))
 				break
 		else:
 			# we couldn't generate a non-overlapping box in 10 tries, we generate one without checking
-			x = randint(0, width - size)
-			y = randint(0, height - size)
-			mask[y:y + size, x:x + size] = 255
+			x = randint(0, width-size)
+			y = randint(0, height-size)
 			boxlist.append((emoji.id, x, y, size))
+
+	# apply every box in boxlist to the mask
+	for (emo_id, x, y, size) in boxlist:
+		mask[y:y + size, x:x + size] = 255
 
 	# generate the image
 	imgobject: Image = WordCloud(
 		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
 		background_color=None, mode="RGBA"
 	).fit_words(dictwords).to_image()
+
+	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:
+		# get the scaled emoji picture
 		emo_img: Image = emo_imgs[emo_id].resize((size*scaling, size*scaling))
+		# paste it in the pre-defined box
 		imgobject.paste(emo_img, (x*scaling, y*scaling))
+
+	# get and return the image bytes
 	imgbytes = io.BytesIO()
 	imgobject.save(imgbytes, format='PNG')
 	imgbytes.seek(0)

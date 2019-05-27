@@ -146,7 +146,8 @@ class Cloud(commands.Cog):
 	@commands.Cog.listener()
 	async def on_message(self, msg: Message):
 		# check if the author of the message is not a bot and if the channel is not ignored
-		if not msg.author.bot and msg.channel.id not in ignored.ignore_list(msg.guild.id):
+		if not msg.author.bot and isinstance(msg.channel, TextChannel) and \
+				msg.channel.id not in ignored.ignore_list(msg.guild.id):
 			self.add_to_model(msg)
 
 	@commands.Cog.listener()
@@ -220,10 +221,17 @@ class Cloud(commands.Cog):
 
 	@commands.command(brief="- Request your or other's word cloud !")
 	async def cloud(self, ctx):
-		print(f"{ctx.author.name}#{ctx.author.discriminator} requested a wordcloud !")
+		if isinstance(ctx.channel, TextChannel):
+			channelname = ctx.channel.guild.name+"#"+ctx.channel.name
+		else:
+			channelname = "DM"
 		mentions: List[Member] = ctx.message.mentions
 		if len(mentions) == 0:
+			reqtext = "his WordCloud"
 			mentions.append(ctx.author)
+		else:
+			reqtext = "a WordCloud for " + ", ".join([user.name+"#"+user.discriminator for user in mentions])
+		print(f"{channelname}: {ctx.author.name}#{ctx.author.discriminator} requested {reqtext} !")
 		async with ctx.channel.typing():
 			for member in mentions:
 				image = make_image.simple_image(self.resolve_words(ctx, self.model.word_cloud(str(member.id), n=2)))
