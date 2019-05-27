@@ -14,10 +14,15 @@ class Baseline(Model):
 		# <source, <word, count>>
 		self.count: Dict[str, Counter] = {}
 
-	def add(self, source: str, word: str, weight: float = 1):
+	def add(self, source: str, word: str, weight: float = 1) -> None:
 		if source not in self.count:
 			self.count[source] = Counter()
 		self.count[source][word] += weight
+
+	def add_n(self, source: str, words: Tuple[str], weight: float = 1) -> None:
+		if source not in self.count:
+			self.count[source] = Counter()
+		self.count[source][" ".join(words)] += weight
 
 	def word_cloud(self, source: str, **kwargs) -> List[Tuple[str, float]]:
 		if source not in self.count:

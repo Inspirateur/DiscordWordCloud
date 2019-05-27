@@ -23,6 +23,13 @@ class Cloud(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
+		try:
+			ModelClass().add_n("", ("", ))
+			self.n = 3
+			print(f"{ModelClass.__name__} handles n-grams, we use n=3")
+		except NotImplementedError:
+			self.n = 1
+			print(f"{ModelClass.__name__} doesn't handle n-grams, we use n=1")
 		self.emojis: Dict[int, Emoji] = {}
 		# a simple <guildID, <word, <user, count>>> used for misc commands
 		self.words: Dict[int, Dict[str, Counter]] = {}
@@ -51,7 +58,7 @@ class Cloud(commands.Cog):
 		for guild in self.bot.guilds:
 			# start a parallel message loader
 			self.words[guild.id] = {}
-			create_task(load_msgs(guild, self.model, self.words[guild.id], self.limitdate, self.maxmsg))
+			create_task(load_msgs(guild, self.model, self.n, self.words[guild.id], self.limitdate, self.maxmsg))
 
 	@commands.Cog.listener()
 	async def on_ready(self):
