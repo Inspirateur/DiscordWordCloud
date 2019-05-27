@@ -21,10 +21,6 @@ def add_to_model(model: Model, words: Dict[str, Counter], wordsn: int, msg: Mess
 			lasttokens.append(emoji)
 			# add the emoji to the model
 			model.add(userid, emoji)
-			# add the emoji to the wordlist
-			if emoji not in words:
-				words[emoji] = Counter()
-			words[emoji][userid] += 1
 		else:
 			# the match is not an emoji, we look for a token
 			token = ''.join(match[1:]).lower()
