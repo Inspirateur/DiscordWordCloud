@@ -8,7 +8,7 @@ from WordCloudModel.model import Model
 globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<..?[0-9]+>)|([\w-]+)|([^\s])')
 
 
-def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int = 1):
+def add_to_model(model: Model, words: Dict[str, Counter], wordsn: int, msg: Message, n: int = 1):
 	userid = str(msg.author.id)
 	# build the list of tokens without the emojis
 	tokens: List[str] = []
@@ -40,9 +40,17 @@ def add_to_model(model: Model, words: Dict[str, Counter], msg: Message, n: int =
 	for i in range(2, n+1):
 		for j in range(len(tokens)-i+1):
 			model.add_n(userid, tuple(tokens[j:j+i]), 1.0/n)
+	# add the n-grams up to wordsn in words
+	for i in range(2, wordsn+1):
+		for j in range(len(tokens)-i+1):
+			ngram = " ".join(tokens[j:j+i])
+			if ngram not in words:
+				words[ngram] = Counter()
+			words[ngram][userid] += 1
 
 
-async def load_msgs(guild: Guild, model: Model, n, words: Dict[str, Counter], limitdate: datetime, maxmsg: int) -> None:
+async def load_msgs(
+		guild: Guild, model: Model, n, words: Dict[str, Counter], wordsn: int, limitdate: datetime, maxmsg: int) -> None:
 	print(f"Start reading messages for {guild.name}")
 	# get the member object representing the bot
 	memberself = guild.me
@@ -55,7 +63,7 @@ async def load_msgs(guild: Guild, model: Model, n, words: Dict[str, Counter], li
 			# for every message in the channel after the limit date, from new to old
 			async for message in channel.history(limit=maxmsg, after=limitdate, oldest_first=False):
 				if not message.author.bot:
-					add_to_model(model, words, message, n)
+					add_to_model(model, words, wordsn, message, n)
 				# also add the reactions to echo if there's any
 				for reaction in message.reactions:
 					async for user in reaction.users():

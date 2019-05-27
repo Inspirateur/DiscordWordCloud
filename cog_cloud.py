@@ -33,6 +33,7 @@ class Cloud(commands.Cog):
 		self.emojis: Dict[int, Emoji] = {}
 		# a simple <guildID, <word, <user, count>>> used for misc commands
 		self.words: Dict[int, Dict[str, Counter]] = {}
+		self.wordsn: int = 3
 		self.maxmsg: int = 20000
 		self.maxdays: int = 120
 		self.limitdate: datetime = datetime.now() - timedelta(days=self.maxdays)
@@ -58,7 +59,7 @@ class Cloud(commands.Cog):
 		for guild in self.bot.guilds:
 			# start a parallel message loader
 			self.words[guild.id] = {}
-			create_task(load_msgs(guild, self.model, self.n, self.words[guild.id], self.limitdate, self.maxmsg))
+			create_task(load_msgs(guild, self.model, self.n, self.words[guild.id], self.wordsn, self.limitdate, self.maxmsg))
 
 	@commands.Cog.listener()
 	async def on_ready(self):
