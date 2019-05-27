@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, deque
 from datetime import datetime
 from typing import Dict, List, Set
 import re
@@ -10,6 +10,7 @@ globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<.
 
 def add_to_model(model: Model, words: Dict[str, Counter], wordsn: int, msg: Message, n: int = 1):
 	userid = str(msg.author.id)
+	lasttokens = deque(maxlen=wordsn)
 	# build the list of tokens without the emojis
 	tokens: List[str] = []
 	# for every token in the message
@@ -17,6 +18,7 @@ def add_to_model(model: Model, words: Dict[str, Counter], wordsn: int, msg: Mess
 		# try to look for emoji in the match
 		emoji = match[0]
 		if emoji:
+			lasttokens.append(emoji)
 			# add the emoji to the model
 			model.add(userid, emoji)
 			# add the emoji to the wordlist
@@ -27,26 +29,31 @@ def add_to_model(model: Model, words: Dict[str, Counter], wordsn: int, msg: Mess
 			# the match is not an emoji, we look for a token
 			token = ''.join(match[1:])
 			if token:
+				lasttokens.append(token)
 				# add the token
 				tokens.append(token.lower())
+		if len(lasttokens) == wordsn:
+			# we start adding n-grams to words only when lasttoken deque is full
+			for i in range(len(lasttokens)):
+				igram = " ".join([lasttokens[j] for j in range(i+1)])
+				if igram not in words:
+					words[igram] = Counter()
+				words[igram][userid] += 1
+	# if the lasttokens deque is smaller than maximum, we must add the n-grams to words now
+	if len(lasttokens) < wordsn:
+		for i in range(len(lasttokens)):
+			igram = " ".join([lasttokens[j] for j in range(i + 1)])
+			if igram not in words:
+				words[igram] = Counter()
+			words[igram][userid] += 1
 
 	# add the tokens individually to the model
 	for word in tokens:
 		model.add(userid, word)
-		if word not in words:
-			words[word] = Counter()
-		words[word][userid] += 1
 	# add the tokens as n-grams (n>=2) to the model
 	for i in range(2, n+1):
 		for j in range(len(tokens)-i+1):
 			model.add_n(userid, tuple(tokens[j:j+i]), 1.0/n)
-	# add the n-grams up to wordsn in words
-	for i in range(2, wordsn+1):
-		for j in range(len(tokens)-i+1):
-			ngram = " ".join(tokens[j:j+i])
-			if ngram not in words:
-				words[ngram] = Counter()
-			words[ngram][userid] += 1
 
 
 async def load_msgs(
