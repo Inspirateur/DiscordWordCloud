@@ -16,7 +16,7 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 	for (emo_id, ox, oy, osize) in boxlist:
 		if not (ox+osize < x or ox > x+size or oy > y+size or oy+osize < y):
 			return True
-	return len(boxlist) == 0
+	return len(boxlist) > 0
 
 
 def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
