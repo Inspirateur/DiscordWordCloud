@@ -27,11 +27,11 @@ def add_to_model(model: Model, words: Dict[str, Counter], wordsn: int, msg: Mess
 			words[emoji][userid] += 1
 		else:
 			# the match is not an emoji, we look for a token
-			token = ''.join(match[1:])
+			token = ''.join(match[1:]).lower()
 			if token:
 				lasttokens.append(token)
 				# add the token
-				tokens.append(token.lower())
+				tokens.append(token)
 		if len(lasttokens) == wordsn:
 			# we start adding n-grams to words only when lasttoken deque is full
 			for i in range(len(lasttokens)):
