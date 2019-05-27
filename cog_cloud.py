@@ -6,7 +6,7 @@ import re
 from typing import Dict, List, Set, Tuple, Union
 
 import discord.ext.commands as commands
-from discord import Activity, ActivityType, Emoji, File, Guild, Member, Message, TextChannel
+from discord import Activity, ActivityType, Emoji, File, Guild, Member, Message, Reaction, TextChannel, User
 
 from emoji_loader import EmojiLoader
 import Image.make_image as make_image
@@ -148,6 +148,19 @@ class Cloud(commands.Cog):
 		# check if the author of the message is not a bot and if the channel is not ignored
 		if not msg.author.bot and msg.channel.id not in ignored.ignore_list(msg.guild.id):
 			self.add_to_model(msg)
+
+	@commands.Cog.listener()
+	async def on_reaction_add(self, reaction: Reaction, user: User):
+		# check if the author of the reaction is not a bot and if the channel is not ignored
+		if not user.bot and reaction.message.channel.id not in ignored.ignore_list(reaction.message.guild.id):
+			emoji = str(reaction.emoji)
+			user_id = str(user.id)
+			# add the emoji to the model
+			self.model.add(user_id, emoji)
+			# add the emoji to words
+			if emoji not in self.words[reaction.message.guild.id]:
+				self.words[reaction.message.guild.id][emoji] = Counter()
+			self.words[reaction.message.guild.id][emoji][user_id] += 1
 
 	def resolve_tag(self, ctx, w: str) -> Union[str, Emoji]:
 		if len(w) > 3:
