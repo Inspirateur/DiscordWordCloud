@@ -27,7 +27,7 @@ Requires manage channel permission:
 (by defaults the bot read all the channel it has read access to)
 
 Please note that this project is still in development, 
-some features like real time training are not implemented yet.
+some features might still contain bugs or not be polished.
 
 # Pictures
 
