@@ -20,7 +20,7 @@ globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<.
 
 
 class Cloud(commands.Cog):
-	# 	TODO: listen to messages and use add_to_model
+	# 	TODO: Do a proper discord message tokenization module somewhere else
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
