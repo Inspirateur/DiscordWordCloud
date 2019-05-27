@@ -16,7 +16,7 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 	for (emo_id, ox, oy, osize) in boxlist:
 		if not (ox+osize < x or ox > x+size or oy > y+size or oy+osize < y):
 			return True
-	return False
+	return len(boxlist) == 0
 
 
 def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
@@ -50,16 +50,23 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	# boxlist is (emoji_id, x, y, size)
 	boxlist: List[Tuple[int, int, int, int]] = []
 	for (emoji, value) in emolist:
+		# compute the size based on the relative strength of the emoji
 		size = max(16, min(round(height/2), round(4*height*value/total)))
-		x = randint(0, width-size)
-		y = randint(0, height-size)
-		trycount = 0
-		while trycount < 10 and is_overlapping(boxlist, x, y, size):
+		# tries to generate a random non-overlapping box with this size (10 tries max)
+		for tries in range(10):
+			x = randint(0, width-size)
+			y = randint(0, height-size)
+			if not is_overlapping(boxlist, x, y, size):
+				mask[y:y + size, x:x + size] = 255
+				boxlist.append((emoji.id, x, y, size))
+				break
+		else:
+			# we couldn't generate a non-overlapping box in 10 tries, we generate one without checking
 			x = randint(0, width - size)
 			y = randint(0, height - size)
-			trycount += 1
-		mask[y:y+size, x:x+size] = 255
-		boxlist.append((emoji.id, x, y, size))
+			mask[y:y + size, x:x + size] = 255
+			boxlist.append((emoji.id, x, y, size))
+
 	# generate the image
 	imgobject: Image = WordCloud(
 		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
