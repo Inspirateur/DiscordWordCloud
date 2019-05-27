@@ -2,5 +2,5 @@ token.txt
 *__pycache__
 .idea/
 *_save.*
-WordCloudModel/echo.py
+Model/echo.py
 *.db

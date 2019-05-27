@@ -7,12 +7,12 @@ import discord.ext.commands as commands
 from discord import Activity, ActivityType, Emoji, File, Member, TextChannel
 from emoji_loader import EmojiLoader
 from message_loader import load_msgs
-import WordCloudImage.make_image as make_image
-from WordCloudModel.model import Model
+import Image.make_image as make_image
+from Model.model import Model
 try:
-	from WordCloudModel.echo import Echo as ModelClass
+	from Model.echo import Echo as ModelClass
 except ImportError:
-	from WordCloudModel.baseline import Baseline as ModelClass
+	from Model.baseline import Baseline as ModelClass
 
 
 class Cloud(commands.Cog):

@@ -6,7 +6,7 @@ from PIL import Image
 from random import randint
 from urllib.request import Request, urlopen
 from wordcloud import WordCloud
-from WordCloudModel.model import defaultwords
+from Model.model import defaultwords
 # TODO: for an obscure reason i can't type hint this
 # <emoji_id, image>
 emo_imgs: Dict = {}
@@ -62,7 +62,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 		boxlist.append((emoji.id, x, y, size))
 	# generate the image
 	imgobject: Image = WordCloud(
-		"WordCloudImage/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
+		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
 		background_color=None, mode="RGBA"
 	).fit_words(dictwords).to_image()
 	for (emo_id, x, y, size) in boxlist:

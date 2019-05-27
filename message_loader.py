@@ -4,7 +4,7 @@ from typing import Dict, List, Set
 import re
 from discord import Guild, Message
 import Management.ignored as ignored
-from WordCloudModel.model import Model
+from Model.model import Model
 globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<..?[0-9]+>)|([\w-]+)|([^\s])')
 
 
