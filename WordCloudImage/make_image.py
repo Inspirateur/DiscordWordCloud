@@ -12,12 +12,6 @@ from WordCloudModel.model import defaultwords
 emo_imgs: Dict = {}
 
 
-def add_square(mask: np.array, x: int, y: int, size: int):
-	for i in range(x, x+size):
-		for j in range(y, y+size):
-			mask[j][i] = 255
-
-
 def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int):
 	for (emo_id, ox, oy, osize) in boxlist:
 		if not (ox+osize < x or ox > x+size or oy > y+size or oy+osize < y):
@@ -64,7 +58,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 			x = randint(0, width - size)
 			y = randint(0, height - size)
 			trycount += 1
-		add_square(mask, x, y, size)
+		mask[y:y+size, x:x+size] = 255
 		boxlist.append((emoji.id, x, y, size))
 	# generate the image
 	imgobject: Image = WordCloud(
