@@ -15,7 +15,7 @@ class Misc(commands.Cog):
 		elif len(args) > 0:
 			print(
 				f"{ctx.channel.guild.name}#{ctx.channel.name}: "
-				f"{ctx.message.author.name}#{ctx.message.author.discriminator} has requested the word usage of "
+				f"{ctx.message.author.name}#{ctx.message.author.discriminator} requested the word usage of "
 				f"'{' '.join(args)}'"
 			)
 			modelcog: Cloud = self.bot.get_cog("Cloud")
@@ -54,7 +54,7 @@ class Misc(commands.Cog):
 		if isinstance(ctx.channel, TextChannel):
 			print(
 				f"{ctx.channel.guild.name}#{ctx.channel.name}: "
-				f"{ctx.message.author.name}#{ctx.message.author.discriminator} has requested the emoji podium."
+				f"{ctx.message.author.name}#{ctx.message.author.discriminator} requested the emoji podium."
 			)
 			modelcog: Cloud = self.bot.get_cog("Cloud")
 			podium = []
