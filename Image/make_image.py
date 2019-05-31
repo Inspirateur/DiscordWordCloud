@@ -7,7 +7,7 @@ from random import randint
 from urllib.request import Request, urlopen
 from wordcloud import WordCloud
 from Model.model import defaultwords
-# TODO: for an obscure reason i can't type hint this
+# FIXME: for an obscure reason i can't type hint this
 # <emoji_id, image>
 emo_imgs: Dict = {}
 # proportions of the resulting image

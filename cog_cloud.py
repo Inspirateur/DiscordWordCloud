@@ -20,7 +20,8 @@ globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<.
 
 
 class Cloud(commands.Cog):
-	# 	TODO: Do a proper discord message tokenization module somewhere else
+	# 	TODO: Do a proper discord message tokenization module somewhere else,
+	# 	 that given a message content returns a list of custom Token object, with (among other) the attribute "is_emoji"
 	def __init__(self, bot: commands.Bot):
 		self.bot: commands.Bot = bot
 		self.model: Model = ModelClass()
