@@ -8,14 +8,14 @@ from typing import Dict, List, Set, Tuple, Union
 import discord.ext.commands as commands
 from discord import Activity, ActivityType, Emoji, File, Guild, Member, Message, Reaction, TextChannel, User
 
-from emoji_loader import EmojiLoader
+from Image.emoji_loader import EmojiLoader
 import Image.make_image as make_image
 import Management.ignored as ignored
-from Model.model import Model
+from NLP.Model.model import Model
 try:
-	from Model.echo import Echo as ModelClass
+	from NLP.Model import Echo as ModelClass
 except ImportError:
-	from Model.baseline import Baseline as ModelClass
+	from NLP.Model.baseline import Baseline as ModelClass
 globreg = re.compile(r'(<a?:[^:]+:[0-9]+>)|https?://(?:www.)?([^/\s]+)[^\s]+|(<..?[0-9]+>)|([\w-]+)|([^\s])')
 
 

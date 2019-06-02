@@ -6,7 +6,7 @@ from PIL import Image
 from random import randint
 from urllib.request import Request, urlopen
 from wordcloud import WordCloud
-from Model.model import defaultwords
+from NLP.Model.model import defaultwords
 # FIXME: for an obscure reason i can't type hint this
 # <emoji_id, image>
 emo_imgs: Dict = {}

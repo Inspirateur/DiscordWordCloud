@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import Dict, List, Tuple, Union
 import json
-from Model.model import Model, defaultwords
+from NLP.Model.model import Model, defaultwords
 
 
 class Baseline(Model):
