@@ -31,8 +31,8 @@ some features might still contain bugs or not be polished.
 
 # Pictures
 
-![sample image of a word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/cloud_sample.png)
-![sample image of a word top usage](https://github.com/Inspirateur/DiscordWordCloud/blob/master/word_sample.png)
+![sample image of a word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud_sample.png)
+![sample image of a word top usage](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/word_sample.png)
 
 # Powered by:
 
