@@ -11,6 +11,7 @@ from discord import Activity, ActivityType, Emoji, File, Guild, Member, Message,
 from Image.emoji_loader import EmojiLoader
 import Image.make_image as make_image
 import Management.ignored as ignored
+from NLP.discord_nlp import Token, tokenize
 from NLP.Model.model import Model
 try:
 	from NLP.Model import Echo as ModelClass
@@ -57,11 +58,13 @@ class Cloud(commands.Cog):
 		print("words loaded from save")
 
 	def add_to_model(self, msg: Message):
+		# _tokens = tokenize(msg.content)
 		userid = str(msg.author.id)
 		guilid = msg.guild.id
 		lasttokens = deque(maxlen=self.wordsn)
 		# build the list of tokens without the emojis
 		tokens: List[str] = []
+
 		# for every token in the message
 		for match in globreg.findall(msg.content):
 			# try to look for emoji in the match
