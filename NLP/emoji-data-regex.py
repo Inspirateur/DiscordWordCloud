@@ -37,15 +37,15 @@ class EmojiRange:
 			return False
 
 	def __str__(self):
-		return f"{'{:04x}'.format(self.start).upper()}..{'{:04x}'.format(self.end).upper()}\t" \
-			f"({self.emo_start}..{self.emo_end})"
+		return f"{'{:5X}'.format(self.start)}..{'{:5X}'.format(self.end)}    " \
+			f"{'{:4}'.format(1+self.end-self.start)}    ({self.emo_start}..{self.emo_end})"
 
 
 def is_relevant(line: str) -> bool:
 	return not line.startswith('#') and len(line.strip()) > 0
 
 
-def filter_range(emoranges: List[EmojiRange]) -> List[EmojiRange]:
+def combine_range(emoranges: List[EmojiRange]) -> List[EmojiRange]:
 	# assemble side by side ranges into one
 	filtered: List[EmojiRange] = []
 	start = emoranges[0].start
@@ -53,7 +53,7 @@ def filter_range(emoranges: List[EmojiRange]) -> List[EmojiRange]:
 	emo_start = emoranges[0].emo_start
 	emo_end = emoranges[0].emo_end
 	for emorange in emoranges[1:]:
-		if emorange.start - end <= 2:
+		if emorange.start - end <= 8:
 			end = emorange.end
 			emo_end = emorange.emo_end
 		else:
@@ -66,10 +66,12 @@ def filter_range(emoranges: List[EmojiRange]) -> List[EmojiRange]:
 
 
 with open("emoji-data.txt", "r", encoding="utf-8") as emojidata:
-	emo_ranges = filter_range(sorted(
+	emo_ranges = combine_range(sorted(
 		set([EmojiRange.parse(line) for line in emojidata.read().splitlines(keepends=False) if is_relevant(line)]),
-		key=lambda x: x.start))
+		key=lambda x: x.start)
+	)
 
 
+# TODO: remove NAs but don't prevent NAs to be included in a bigger mixed range
 with open("emoji-regex.txt", "w", encoding="utf-8") as emojireg:
 	emojireg.write("\n".join([str(line) for line in emo_ranges]))
