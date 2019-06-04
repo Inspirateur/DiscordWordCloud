@@ -1,7 +1,7 @@
 from typing import List
 """
-An attempt to extract a unicode emoji regex from the official Unicode emoji data files 
-(since I can't find any decent complete and exclusive regex on the web)
+An attempt to extract a unicode emoji regex from the official Unicode emoji data file (v12.0)
+(since I can't find any decent up-to-date regex on the web)
 """
 
 
