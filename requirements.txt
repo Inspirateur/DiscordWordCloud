@@ -2,3 +2,4 @@ discord.py
 wordcloud
 numpy
 pillow
+matplotlib

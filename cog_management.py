@@ -52,7 +52,7 @@ class Management(commands.Cog):
 		await ctx.channel.send(
 			f"**Author**: {inspi.name}#{inspi.discriminator} *(PM open if you got any question, FR/EN)*\n"
 			"**Invite Link**: "
-			"<https://discordapp.com/api/oauth2/authorize?client_id=575778045021913139&permissions=0&scope=bot>\n"
+			f"<https://discordapp.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=0&scope=bot>\n"
 			"**GitHub**: <https://github.com/Inspirateur/DiscordWordCloud>\n"
 			f"*Thanks to {koku.name}#{koku.discriminator} for helping with the model !*"
 		)
