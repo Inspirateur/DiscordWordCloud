@@ -2,5 +2,5 @@ token.txt
 *__pycache__
 .idea/
 *_save.*
-NLP/Model/echo.py
+NLP/Models/echo.py
 *.db

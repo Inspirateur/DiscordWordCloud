@@ -6,7 +6,7 @@ from PIL import Image
 from random import randint
 from urllib.request import Request, urlopen
 from wordcloud import WordCloud
-from NLP.Model.model import defaultwords
+from NLP.Models.model import defaultwords
 # FIXME: for an obscure reason i can't type hint this
 # <emoji_id, image>
 emo_imgs: Dict = {}
@@ -24,6 +24,7 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 
 
 def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
+	# TODO: the emojis and the words have now been separated, reflect the changes here
 	"""
 	make and save an word cloud image generated with words
 	:param words: the words to use

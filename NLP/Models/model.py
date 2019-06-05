@@ -5,22 +5,22 @@ defaultwords = [("No data", 0.70), ("NaN", 0.25), ("nada", 0.025), ("rien", 0.02
 class Model:
 	def add(self, source: str, word: str, weight: float = 1) -> None:
 		"""
-		Add a word associated with a source to the Model
+		Add a word associated with a source to the Models
 		:param source: the user associated with word
 		:param word: the word to add
 		:param weight: the weight of the word
 		:return:
 		"""
-		raise NotImplementedError("Abstract add_n method of Model wasn't implemented.")
+		raise NotImplementedError("Abstract add_n method of Models wasn't implemented.")
 
 	def add_n(self, source: str, words: Tuple[str], weight: float = 1) -> None:
 		"""
-		Add words associated with a source to the Model
+		Add words associated with a source to the Models
 		:param source: the user associated with words
 		:param words: a n-gram (could be 1 word)
 		:param weight: the weight of the words
 		"""
-		raise NotImplementedError("Abstract add_n method of Model wasn't implemented.")
+		raise NotImplementedError("Abstract add_n method of Models wasn't implemented.")
 
 	def word_cloud(self, source: str, **kwargs) -> List[Tuple[str, float]]:
 		"""
@@ -29,11 +29,11 @@ class Model:
 		:param kwargs:
 		:return: [(word, strength), ...]
 		"""
-		raise NotImplementedError("Abstract word_cloud method of Model wasn't implemented.")
+		raise NotImplementedError("Abstract word_cloud method of Models wasn't implemented.")
 
 	def serialize(self) -> str:
-		raise NotImplementedError("Abstract serialize method of Model wasn't implemented.")
+		raise NotImplementedError("Abstract serialize method of Models wasn't implemented.")
 
 	@staticmethod
 	def parse(text: str) -> "Model":
-		raise NotImplementedError("Abstract parse method of Model wasn't implemented.")
+		raise NotImplementedError("Abstract parse method of Models wasn't implemented.")

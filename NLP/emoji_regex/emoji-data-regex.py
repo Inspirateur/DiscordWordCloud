@@ -1,4 +1,5 @@
 from typing import List
+import re
 """
 An attempt to extract a unicode emoji regex from the official Unicode emoji data file (v12.0)
 (since I can't find any decent up-to-date regex on the web)
@@ -65,13 +66,26 @@ def combine_range(emoranges: List[EmojiRange]) -> List[EmojiRange]:
 	return filtered
 
 
-with open("emoji-data.txt", "r", encoding="utf-8") as emojidata:
-	emo_ranges = combine_range(sorted(
-		set([EmojiRange.parse(line) for line in emojidata.read().splitlines(keepends=False) if is_relevant(line)]),
-		key=lambda x: x.start)
-	)
+def convert_unidata():
+	with open("emoji-data.txt", "r", encoding="utf-8") as emojidata:
+		emo_ranges = combine_range(sorted(
+			set([EmojiRange.parse(line) for line in emojidata.read().splitlines(keepends=False) if is_relevant(line)]),
+			key=lambda x: x.start)
+		)
+
+	# TODO: remove NAs but don't prevent NAs to be included in a bigger mixed range
+	with open("emoji-regex.txt", "w", encoding="utf-8") as emojireg:
+		emojireg.write("\n".join([str(line) for line in emo_ranges]))
 
 
-# TODO: remove NAs but don't prevent NAs to be included in a bigger mixed range
-with open("emoji-regex.txt", "w", encoding="utf-8") as emojireg:
-	emojireg.write("\n".join([str(line) for line in emo_ranges]))
+def repl(match: re.match) -> str:
+	return r'\U'+'{:08X}'.format(int(match[1], 16))
+
+
+def convert_jsreg():
+	with open("jsreg.txt", "r") as fjsreg:
+		with open("pyreg.txt", "w") as fpyreg:
+			fpyreg.write(re.sub(r'\\u{([0-9A-F]+)}', repl, fjsreg.read()))
+
+
+convert_jsreg()

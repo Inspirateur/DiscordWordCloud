@@ -4,6 +4,7 @@ from typing import Dict
 from discord import Guild
 from urllib.request import Request, urlopen
 from PIL import Image
+# TODO: also load a pic for each unicode emoji (use twitter pics)
 
 
 class EmojiLoader(Thread):
