@@ -16,7 +16,7 @@ I encourage you to make your own by inheriting the `Model` class in `WordCloudMo
 If you wish to invite my version of this bot on your server or if you got any questions about this project, feel free to PM `Inspi#8989` on Discord !
 
 # Features
-for `everyone`:
+For `everyone`:
 - `;cloud (<user(s)>)` to generate your word cloud, you can also tag users to generate their clouds
 - `;word <word>` to get a list of the top \<word> users in your server
 - `;emojis` to get the podium of emojis in the guild
