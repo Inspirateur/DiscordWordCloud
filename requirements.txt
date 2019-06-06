@@ -1,3 +1,4 @@
+aiohttp
 discord.py
 wordcloud
 numpy

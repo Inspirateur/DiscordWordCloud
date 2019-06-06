@@ -62,7 +62,7 @@ class Misc(commands.Cog):
 			# for each emoji in the guild
 			for emoji in ctx.guild.emojis:
 				# get its usage and add it to the podium
-				emo = str(emoji)
+				emo = str(emoji.id)
 				if emo in modelcog.words[ctx.guild.id]:
 					podium.append((emo, sum(modelcog.words[ctx.guild.id][emo].values())))
 				else:

@@ -6,10 +6,10 @@ from typing import Dict, List, Set, Tuple, Union
 import discord.ext.commands as commands
 from discord import Activity, ActivityType, Emoji, File, Guild, Member, Message, Reaction, TextChannel, User
 
-from Image.emoji_loader import EmojiLoader
+from Image.emoji_loader import load_uni_emojis, load_guild_emojis
 import Image.make_image as make_image
 import Management.ignored as ignored
-from NLP.discord_nlp import Token, tokenize, ngrams, ngramslower, resolve_tags
+from NLP.discord_nlp import Token, tokenize, ngrams, ngramslower, resolve_tags, resolve_emojis
 from NLP.Models.model import Model
 try:
 	from NLP.Models.echo import Echo as ModelClass
@@ -37,8 +37,9 @@ class Cloud(commands.Cog):
 		self.maxmsg: int = 20000
 		self.maxdays: int = 120
 		self.limitdate: datetime = datetime.now() - timedelta(days=self.maxdays)
+		self.training_guilds: set = set()
 
-	def add_to_model(self, msg: Message):
+	def add_message(self, msg: Message) -> None:
 		userid = str(msg.author.id)
 		guildid = msg.guild.id
 		# tokenize the sentence
@@ -67,7 +68,19 @@ class Cloud(commands.Cog):
 			for igram in ngrams(words, i):
 				self.wrdmodel.add_n(userid, igram)
 
-	async def load_msgs(self, guild: Guild) -> None:
+	async def add_reaction(self, reaction: Reaction):
+		async for user in reaction.users():
+			if isinstance(reaction.emoji, Emoji):
+				emoji = str(reaction.emoji.id)
+			else:
+				emoji = str(reaction.emoji)
+			user_id = str(user.id)
+			self.emomodel.add(user_id, emoji)
+			if emoji not in self.words[reaction.message.guild.id]:
+				self.words[reaction.message.guild.id][emoji] = Counter()
+			self.words[reaction.message.guild.id][emoji][user_id] += 1
+
+	async def load_guild_msgs(self, guild: Guild, training_guilds: set = None) -> None:
 		print(f"Start reading messages for {guild.name}")
 		if guild.id not in self.words:
 			self.words[guild.id] = {}
@@ -83,54 +96,49 @@ class Cloud(commands.Cog):
 				async for message in channel.history(limit=self.maxmsg, after=self.limitdate, oldest_first=False):
 					# add the message to the model if it's not from a bot
 					if not message.author.bot:
-						self.add_to_model(message)
+						self.add_message(message)
 					# also add the reactions to the model if there's any
 					for reaction in message.reactions:
-						async for user in reaction.users():
-							emoji = str(reaction.emoji)
-							user_id = str(user.id)
-							self.emomodel.add(user_id, emoji)
-							if emoji not in self.words[guild.id]:
-								self.words[guild.id][emoji] = Counter()
-							self.words[guild.id][emoji][user_id] += 1
+						await self.add_reaction(reaction)
 		print(f"Finished reading messages for {guild.name}")
+		if training_guilds is not None:
+			training_guilds.remove(guild.id)
 
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print(f"Logged on as {self.bot.user}!")
 		# for every Guild
 		for guild in self.bot.guilds:
+			self.training_guilds.add(guild.id)
 			# start a parallel guild emoji loader
-			emoloader = EmojiLoader(guild, make_image.emo_imgs)
-			emoloader.start()
+			create_task(load_guild_emojis(guild, make_image.emo_imgs))
 			# start a parallel guild message loader
-			create_task(self.load_msgs(guild))
+			create_task(self.load_guild_msgs(guild, self.training_guilds))
+		# load unicode emojis (it's fast so we do it synchronously)
+		load_uni_emojis(make_image.emo_imgs)
+		# set a presence message
 		await self.bot.change_presence(activity=Activity(name=self.bot.command_prefix+"cloud", type=ActivityType.listening))
 
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild: Guild):
 		print(f">>> Joined the guild {guild.name} !")
-		create_task(self.load_msgs(guild))
+		# start a parallel guild emoji loader
+		create_task(load_guild_emojis(guild, make_image.emo_imgs))
+		# start a parallel guild message loader
+		create_task(self.load_guild_msgs(guild))
 
 	@commands.Cog.listener()
 	async def on_message(self, msg: Message):
 		# check if the author of the message is not a bot and if the channel is not ignored
 		if not msg.author.bot and isinstance(msg.channel, TextChannel) and \
 				msg.channel.id not in ignored.ignore_list(msg.guild.id):
-			self.add_to_model(msg)
+			self.add_message(msg)
 
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction: Reaction, user: User):
 		# check if the author of the reaction is not a bot and if the channel is not ignored
 		if not user.bot and reaction.message.channel.id not in ignored.ignore_list(reaction.message.guild.id):
-			emoji = str(reaction.emoji)
-			user_id = str(user.id)
-			# add the emoji to the model
-			self.emomodel.add(user_id, emoji)
-			# add the emoji to words
-			if emoji not in self.words[reaction.message.guild.id]:
-				self.words[reaction.message.guild.id][emoji] = Counter()
-			self.words[reaction.message.guild.id][emoji][user_id] += 1
+			await self.add_reaction(reaction)
 
 	@commands.command(brief="- Request your or other's word cloud !")
 	async def cloud(self, ctx):
@@ -146,9 +154,13 @@ class Cloud(commands.Cog):
 			reqtext = "a WordCloud for " + ", ".join([user.name+"#"+user.discriminator for user in mentions])
 		print(f"{channelname}: {ctx.author.name}#{ctx.author.discriminator} requested {reqtext} !")
 		async with ctx.channel.typing():
+			warning = "⚠️I am still training, unstable results ⚠️\n" if len(self.training_guilds) > 0 else ''
 			for member in mentions:
-				image = make_image.simple_image(resolve_tags(ctx, self.wrdmodel.word_cloud(str(member.id), n=2)))
+				image = make_image.simple_image(
+					resolve_tags(ctx.guild, self.wrdmodel.word_cloud(str(member.id), n=2)),
+					resolve_emojis(self.bot, self.emomodel.word_cloud(str(member.id), n=2))
+				)
 				await ctx.channel.send(
-					content=f"**{member.display_name}**'s Word Cloud ({ModelClass.__name__}):",
+					content=f"{warning}**{member.display_name}**'s Word Cloud ({ModelClass.__name__}):",
 					file=File(fp=image, filename=f"{member.display_name}_word_cloud.png")
 				)

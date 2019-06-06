@@ -1,10 +1,9 @@
 import io
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 from discord import Emoji
 import numpy as np
 from PIL import Image
 from random import randint
-from urllib.request import Request, urlopen
 from wordcloud import WordCloud
 from NLP.Models.model import defaultwords
 # FIXME: for an obscure reason i can't type hint this
@@ -23,50 +22,48 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 	return len(boxlist) > 0
 
 
-def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
-	# TODO: the emojis and the words have now been separated, reflect the changes here
-	"""
-	make and save an word cloud image generated with words
-	:param words: the words to use
-	:return: a virtual image file
-	"""
-	if len(words) <= 0:
-		words = defaultwords
-	# we limit ourselves to the top 200 words
-	words = words[:200]
-	mask = np.zeros(shape=(height, width), dtype=int)
-	dictwords = {}
-	emolist: List[Tuple[Emoji, float]] = []
-	total: float = 0.0
-	for (word, value) in words:
-		if isinstance(word, Emoji):
-			if word.id not in emo_imgs:
-				emo_imgs[word.id] = Image.open(io.BytesIO(urlopen(
-					Request(str(word.url), headers={'User-Agent': 'Mozilla/5.0'})
-				).read()))
-			emolist.append((word, value))
-		else:
-			dictwords[word] = value
+def make_boxlist(emolist: List[Tuple[Any, float]]) -> List[Tuple[Any, int, int, int]]:
+	total = 0.0
+	for (emoji, value) in emolist:
 		total += value
 	# compute random non-overalapping boxes for the custom emojis
 	# boxlist is (emoji_id, x, y, size)
 	boxlist: List[Tuple[int, int, int, int]] = []
 	for (emoji, value) in emolist:
 		# compute the size based on the relative strength of the emoji
-		size = max(16, min(round(height/2), round(4*height*value/total)))
-		# tries to generate a random non-overlapping box with this size (10 tries max)
-		for tries in range(10):
-			x = randint(0, width-size)
-			y = randint(0, height-size)
-			if not is_overlapping(boxlist, x, y, size):
-				boxlist.append((emoji.id, x, y, size))
-				break
-		else:
-			# we couldn't generate a non-overlapping box in 10 tries, we generate one without checking
-			x = randint(0, width-size)
-			y = randint(0, height-size)
-			boxlist.append((emoji.id, x, y, size))
+		size = min(round(height / 2), round(height * value / total))
+		# we only take the emoji if its worth a pixel in our image
+		if size >= 4:
+			size = max(16, size)
+			# tries to generate a random non-overlapping box with this size (10 tries max)
+			for tries in range(10):
+				x = randint(0, width - size)
+				y = randint(0, height - size)
+				if not is_overlapping(boxlist, x, y, size):
+					boxlist.append((emoji, x, y, size))
+					break
+			else:
+				# we couldn't generate a non-overlapping box in 10 tries, we generate one without checking
+				x = randint(0, width - size)
+				y = randint(0, height - size)
+				boxlist.append((emoji, x, y, size))
+	return boxlist
 
+
+def simple_image(words: List[Tuple[Union[str, Emoji], float]], emojis: List[Tuple[str, float]]) -> io.BytesIO:
+	"""
+	make and save an word cloud image generated with words and emojis
+	:param words: the words to use
+	:param emojis: the emojis to use
+	:return: a virtual image file
+	"""
+	if len(words) <= 0:
+		words = defaultwords
+	# we create the mask image
+	mask = np.zeros(shape=(height, width), dtype=int)
+
+	# compute the boxlist representing the space taken by emoji pics
+	boxlist: List[Tuple[Any, int, int, int]] = make_boxlist(emojis)
 	# apply every box in boxlist to the mask
 	for (emo_id, x, y, size) in boxlist:
 		mask[y:y + size, x:x + size] = 255
@@ -75,7 +72,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]]) -> io.BytesIO:
 	imgobject: Image = WordCloud(
 		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
 		background_color=None, mode="RGBA"
-	).fit_words(dictwords).to_image()
+	).fit_words(dict(words[:200])).to_image()
 
 	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:
