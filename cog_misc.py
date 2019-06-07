@@ -62,11 +62,10 @@ class Misc(commands.Cog):
 			# for each emoji in the guild
 			for emoji in ctx.guild.emojis:
 				# get its usage and add it to the podium
-				emo = str(emoji.id)
-				if emo in modelcog.words[ctx.guild.id]:
-					podium.append((emo, sum(modelcog.words[ctx.guild.id][emo].values())))
+				if str(emoji.id) in modelcog.words[ctx.guild.id]:
+					podium.append((str(emoji), sum(modelcog.words[ctx.guild.id][str(emoji.id)].values())))
 				else:
-					podium.append((emo, 0))
+					podium.append((str(emoji), 0))
 				total += podium[-1][1]
 			# sort the podium
 			podium.sort(key=lambda x: x[1], reverse=True)
