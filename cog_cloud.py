@@ -101,7 +101,7 @@ class Cloud(commands.Cog):
 					for reaction in message.reactions:
 						await self.add_reaction(reaction)
 		print(f"Finished reading messages for {guild.name}")
-		if training_guilds is not None:
+		if training_guilds is not None and guild.id in training_guilds:
 			training_guilds.remove(guild.id)
 
 	@commands.Cog.listener()
@@ -122,10 +122,11 @@ class Cloud(commands.Cog):
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild: Guild):
 		print(f">>> Joined the guild {guild.name} !")
+		self.training_guilds.add(guild.id)
 		# start a parallel guild emoji loader
 		create_task(load_guild_emojis(guild, make_image.emo_imgs))
 		# start a parallel guild message loader
-		create_task(self.load_guild_msgs(guild))
+		create_task(self.load_guild_msgs(guild, self.training_guilds))
 
 	@commands.Cog.listener()
 	async def on_message(self, msg: Message):
@@ -157,8 +158,8 @@ class Cloud(commands.Cog):
 			warning = "⚠️I am still training, unstable results ⚠️\n" if len(self.training_guilds) > 0 else ''
 			for member in mentions:
 				image = make_image.simple_image(
-					resolve_tags(ctx.guild, self.wrdmodel.word_cloud(str(member.id), n=2)),
-					resolve_emojis(self.bot, self.emomodel.word_cloud(str(member.id), n=2))
+					resolve_tags(ctx.guild, self.wrdmodel.word_cloud(str(member.id), acc=2)),
+					resolve_emojis(self.bot, self.emomodel.word_cloud(str(member.id), acc=2))
 				)
 				await ctx.channel.send(
 					content=f"{warning}**{member.display_name}**'s Word Cloud ({ModelClass.__name__}):",
