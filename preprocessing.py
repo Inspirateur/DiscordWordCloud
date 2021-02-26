@@ -1,21 +1,6 @@
-from collections import UserString
-from typing import List, Iterator, Tuple, Union
+from typing import List, Tuple
 import re
-from discord import Client, Guild
-from Image.make_image import emo_imgs
-
-
-class Token(UserString):
-	"""
-	Used when parsing Discord messages, at this stage we just want to know if the token is an emoji or not
-	because the emojis will be treated separately
-	"""
-	def __init__(self, value, is_emoji: bool):
-		# if it's not an emoji and a title we lower-case the value
-		UserString.__init__(self, value.lower() if not is_emoji and value.istitle() else value)
-		self.is_emoji: bool = is_emoji
-
-
+from discord import Guild
 discord_emo = r'<a?:[^:]+:([0-9]+)>'
 discord_tag = r'(<..?[0-9]+>)'
 url = r'https?://(?:www.)?([^/\s]+)[^\s]+'
@@ -23,33 +8,20 @@ uni_emo = r'(\U0001F3F4\U000E0067\U000E0062(?:\U000E0077\U000E006C\U000E0073|\U0
 word = r'([\w-]+)'
 nonspace = r'([^\s])'
 globreg = re.compile(discord_emo+'|'+discord_tag+'|'+url+'|'+uni_emo+'|'+word+'|'+nonspace)
-
-
-def tokenize(msg: str) -> List[Token]:
-	return [Token(next(token for token in match if token), match[0] != match[3]) for match in globreg.findall(msg)]
-
-
-def ngrams(tokens: List[str], n: int) -> Iterator[Tuple]:
-	return zip(*[tokens[i:] for i in range(n)])
-
-
-def ngramslower(tokens: List[str], n) -> List[Union[Tuple, str]]:
-	grams = tokens.copy()
-	for i in range(2, n+1):
-		grams += ngrams(tokens, i)
-	return grams
-
-
 discord_tag_group = re.compile(
 	r'<@&([0-9]+)>|<@!?([0-9]+)>|<#([0-9]+)>'
 )
+
+
+def tokenize(msg: str) -> List[str]:
+	return filter(globreg.findall(msg), None)
 
 
 def resolve_tags(guild: Guild, wordcloud: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
 	"""
 	Make discord tags readable: <@user.id> -> @user.name, <#channel.id> -> #channel.name and so on
 	:param guild: the Guild the request was from
-	:param wordcloud: the list [(word, value), ...] to convert
+	:param wordcloud: the list [(txt, value), ...] to convert
 	:return: the same word list with readable tags
 	"""
 	def repl_tag(match: re.match) -> str:
@@ -67,16 +39,4 @@ def resolve_tags(guild: Guild, wordcloud: List[Tuple[str, float]]) -> List[Tuple
 			return '#'+channel.name if channel is not None else match[0]
 		return match[0]
 
-	return [(discord_tag_group.sub(repl_tag, w), val) for (w, val) in wordcloud]
-
-
-def resolve_emojis(client: Client, emocloud: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
-	"""
-	Tries to download any emoji pic in the emoji cloud that has not been downloaded yet
-	(which concerns every global emoji), and if it's not possible delete the emoji from the emoji cloud
-	:param client: the client running this
-	:param emocloud: the emoji cloud to process
-	:return: the same emoji cloud without any emoji we can't display
-	"""
-	# TODO: for now we just filter out, implement the downloading later
-	return [(emoji, value) for (emoji, value) in emocloud if emoji in emo_imgs]
+	return [(discord_tag_group.sub(repl_tag, txt), val) for (txt, val) in wordcloud]

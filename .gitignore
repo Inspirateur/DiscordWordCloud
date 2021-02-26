@@ -1,6 +1,5 @@
-token.txt
-*__pycache__
-.idea/
-*_save.*
-NLP/Models/echo.py
-*.db
+.idea
+venv
+__pycache__
+token*
+emoji_regex

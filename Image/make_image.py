@@ -1,12 +1,10 @@
 import io
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, Iterable, List, Tuple
 from discord import Emoji
 import numpy as np
 from PIL import Image
 from random import randint
 from wordcloud import WordCloud
-from NLP.Models.model import defaultwords
-# FIXME: for an obscure reason i can't type hint this
 # <emoji_id, image>
 emo_imgs: Dict = {}
 # proportions of the resulting image
@@ -50,15 +48,14 @@ def make_boxlist(emolist: List[Tuple[Any, float]]) -> List[Tuple[Any, int, int, 
 	return boxlist
 
 
-def simple_image(words: List[Tuple[Union[str, Emoji], float]], emojis: List[Tuple[str, float]]) -> io.BytesIO:
+def wc_image(wc: Iterable[Tuple[str, float]]) -> io.BytesIO:
 	"""
 	make and save an word cloud image generated with words and emojis
-	:param words: the words to use
-	:param emojis: the emojis to use
+	:param wc: the word cloud data
 	:return: a virtual image file
 	"""
-	if len(words) <= 0:
-		words = defaultwords
+	# TODO: update the code to deal with emojis in text
+	#  the best solution would probably be to have a mapping <emoji: str, image: idk> and scan the text with this
 	# we create the mask image
 	mask = np.zeros(shape=(height, width), dtype=int)
 
@@ -72,7 +69,7 @@ def simple_image(words: List[Tuple[Union[str, Emoji], float]], emojis: List[Tupl
 	imgobject: Image = WordCloud(
 		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
 		background_color=None, mode="RGBA"
-	).fit_words(dict(words[:200])).to_image()
+	).fit_words(dict(wc[:200])).to_image()
 
 	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:

@@ -1,6 +1,0 @@
-aiohttp
-discord.py
-wordcloud
-numpy
-pillow
-matplotlib
