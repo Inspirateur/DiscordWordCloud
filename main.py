@@ -1,6 +1,7 @@
 import os
 import sys
 from typing import Dict
+from datetime import datetime, timedelta
 # noinspection PyPackageRequirements
 import discord
 # noinspection PyPackageRequirements
@@ -15,7 +16,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.emojis = True
 bot = Bot(command_prefix=";", intents=intents)
-MAX_MESSAGES = 100
+MAX_MESSAGES = 10_000
 # <server, wcmodel>
 _models: Dict[discord.Guild, WCModel] = {}
 # <server, <emoji, count>>
@@ -24,12 +25,13 @@ _emoji_resolver = None
 
 
 async def server_messages(server: discord.Guild) -> list:
+	date_after = datetime.now()-timedelta(days=30)
 	messages = []
 	for channel in tqdm(server.text_channels, desc=f"Channels {server.name}", file=sys.stdout):
 		if channel.permissions_for(server.me).read_messages:
 			# for every message in the channel up to a limit
 			async for message in tqdm_asyncio(
-					channel.history(limit=MAX_MESSAGES), desc=channel.name,
+					channel.history(limit=MAX_MESSAGES, after=date_after), desc=channel.name,
 					total=MAX_MESSAGES, file=sys.stdout, leave=False
 			):
 				if not message.author.bot:

@@ -18,7 +18,7 @@ re_discord_thing = r"<[^\s]+>"
 re_uni_emo = _emoji_pattern()
 re_word = r"[\w'-]+"
 re_token = re.compile(re_discord_thing+"|"+re_uni_emo+"|"+re_word)
-re_discord_emo = re.compile(r"<:\w*:\d*>")
+re_discord_emo = re.compile(r"<a?:\w*:\d*>")
 re_discord_tag = re.compile(r"<@&([0-9]+)>|<@!?([0-9]+)>|<#([0-9]+)>")
 
 

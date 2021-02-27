@@ -2,7 +2,6 @@ import io
 from colorsys import hls_to_rgb
 from typing import Hashable, Iterable, List, Tuple
 from random import randint
-import math
 from random import Random
 # noinspection PyPackageRequirements
 import numpy as np
@@ -32,7 +31,7 @@ def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, 
 	boxlist: List[Tuple[int, int, int, int]] = []
 	for (emoji, value) in emolist:
 		# compute the size based on the relative strength of the emoji
-		size = min(round(height / 2), round(height * value / total))
+		size = min(round(height/2), round(height*value/total))
 		# we only take the emoji if its worth a pixel in our image
 		if size >= 4:
 			size = max(16, size)
