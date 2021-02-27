@@ -1,13 +1,16 @@
+from typing import Optional
 import io
-import functools
 from os import listdir
 from os.path import join
+import sys
 import aiohttp
+# noinspection PyPackageRequirements
 import discord
 from PIL import Image
+from tqdm import tqdm
+from tqdm.asyncio import tqdm_asyncio
 
 
-@functools.cache
 def uni_emojis() -> dict:
 	"""
 	Load all unicode emojis in 72x72 (folder from twemoji).
@@ -15,11 +18,10 @@ def uni_emojis() -> dict:
 
 	"""
 	emo_imgs = {}
-	print(f"Start loading unicode emojis")
 	twemoji_path = join("Image", "72x72")
 	emofiles = listdir(twemoji_path)
 	# for every emoji file in twemoji
-	for emofile in emofiles:
+	for emofile in tqdm(emofiles, desc="Unicode Emojis", file=sys.stdout):
 		filename, _ = emofile.split(".")
 		# get the emoji codepoint(s)
 		emocodes = filename.split("-")
@@ -27,11 +29,19 @@ def uni_emojis() -> dict:
 		for emocode in emocodes:
 			# load the image using the unicode char as key
 			emo_imgs[chr(int(emocode, 16))] = Image.open(join(twemoji_path, emofile))
-	print(f"Finished loading unicode emojis")
 	return emo_imgs
 
 
-@functools.cache
+async def external_emoji(emo_id: int) -> Optional[Image.Image]:
+	# NOTE: this is bad code, but it's a pain to get that with the library
+	emoji_url = f"https://cdn.discordapp.com/emojis/{emo_id}.png?v=1"
+	async with aiohttp.ClientSession() as session:
+		async with session.get(emoji_url) as resp:
+			if resp.status == 200:
+				return Image.open(io.BytesIO(await resp.read()))
+	return None
+
+
 async def server_emojis(server: discord.Guild) -> dict:
 	"""
 	Load all custom server emojis asynchronously
@@ -39,13 +49,33 @@ async def server_emojis(server: discord.Guild) -> dict:
 	:return: the <emoji_id, Image> dict
 	"""
 	emo_imgs = {}
-	print(f"Start loading emojis for {server.name}")
 	async with aiohttp.ClientSession() as session:
-		for emoji in server.emojis:
+		for emoji in tqdm_asyncio(server.emojis, desc=f"Emojis {server.name}", file=sys.stdout):
 			emoji_str = str(emoji)
 			if emoji_str not in emo_imgs:
 				async with session.get(str(emoji.url)) as resp:
 					if resp.status == 200:
 						emo_imgs[emoji_str] = Image.open(io.BytesIO(await resp.read()))
-	print(f"Finished loading emojis for {server.name}")
 	return emo_imgs
+
+
+class EmojiResolver:
+	def __init__(self, client: discord.Client):
+		self.client = client
+		self._mapping = uni_emojis()
+
+	async def load_server_emojis(self):
+		for server in self.client.guilds:
+			self._mapping |= await server_emojis(server)
+
+	async def contains(self, emoji: str):
+		if emoji in self._mapping:
+			return True
+		emo_id = int(emoji.split(":")[-1][:-1])
+		img = await external_emoji(emo_id)
+		if img is not None:
+			self._mapping[emoji] = img
+		return img is not None
+
+	def __getitem__(self, emoji: str):
+		return self._mapping[emoji]

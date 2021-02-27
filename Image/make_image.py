@@ -1,11 +1,12 @@
 import io
 from typing import Hashable, Iterable, List, Tuple
-import discord
+from random import randint
+# noinspection PyPackageRequirements
 import numpy as np
 from PIL import Image
-from random import randint
+from preprocessing import re_discord_emo
 from wordcloud import WordCloud
-from emoji_loader import server_emojis, uni_emojis
+from Image.emoji_loader import EmojiResolver
 # proportions of the resulting image
 width = 400
 height = 200
@@ -47,21 +48,22 @@ def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, 
 	return boxlist
 
 
-def wc_image(server: discord.Guild, wc: Iterable[Tuple[str, float]]) -> io.BytesIO:
+async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -> io.BytesIO:
 	"""
 	make and save an word cloud image generated with words and emojis
-	:param server: the server
 	:param wc: the word cloud data
+	:param emoji_imgs: <emoji: str, Image> mapping
 	:return: a virtual image file
 	"""
-	# compute emoji mapping
-	emo_imgs = await server_emojis(server) | uni_emojis()
 	# split the wc into words and emojis
 	str_wc = []
 	emo_wc = []
 	for token, value in wc:
-		if token in emo_imgs:
-			emo_wc.append((token, value))
+		match = re_discord_emo.match(token)
+		if match:
+			match = match[0]
+			if await emoji_imgs.contains(match):
+				emo_wc.append((match, value))
 		else:
 			str_wc.append((token, value))
 	# we create the mask image
@@ -82,7 +84,7 @@ def wc_image(server: discord.Guild, wc: Iterable[Tuple[str, float]]) -> io.Bytes
 	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:
 		# get the scaled emoji picture
-		emo_img: Image = emo_imgs[emo_id].resize((size*scaling, size*scaling))
+		emo_img: Image = emoji_imgs[emo_id].resize((size*scaling, size*scaling))
 		# paste it in the pre-defined box
 		imgobject.paste(emo_img, (x*scaling, y*scaling))
 

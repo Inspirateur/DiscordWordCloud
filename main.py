@@ -1,49 +1,68 @@
 import os
+import sys
 from typing import Dict
+# noinspection PyPackageRequirements
 import discord
+# noinspection PyPackageRequirements
 from discord.ext.commands import Bot
 from tqdm import tqdm
+from tqdm.asyncio import tqdm_asyncio
 import Image.make_image as make_image
-from Image.emoji_loader import server_emojis
+from Image.emoji_loader import EmojiResolver
 from Models.baseline import WCBaseline as WCModel
 from preprocessing import resolve_tags, get_emojis
-bot = Bot(command_prefix=";")
-maxmsg = 1_000
+intents = discord.Intents.default()
+intents.members = True
+intents.emojis = True
+bot = Bot(command_prefix=";", intents=intents)
+maxmsg = 10_000
 # <server, wcmodel>
 models: Dict[discord.Guild, WCModel] = {}
 # <server, <emoji, count>>
-emojis: Dict[discord.Guild, Dict[str, int]]
+emojis: Dict[discord.Guild, Dict[str, int]] = {}
+emoji_resolver = None
 
 
-async def server_messages(server: discord.Guild):
-	for channel in server.text_channels:
-		# for every message in the channel up to a limit
-		async for message in tqdm(channel.history(limit=maxmsg), desc=server.name, total=maxmsg):
-			if not message.author.bot:
-				yield message.author, message.content
-			for reaction in message.reactions:
-				reaction_str = str(reaction.emoji)
-				for user in reaction.users():
-					yield user, reaction_str
+async def server_messages(server: discord.Guild) -> list:
+	messages = []
+	for channel in tqdm(server.text_channels, desc="Channels", file=sys.stdout):
+		if channel.permissions_for(server.me).read_messages:
+			# for every message in the channel up to a limit
+			async for message in tqdm_asyncio(
+					channel.history(limit=maxmsg), desc=channel.name, total=maxmsg, file=sys.stdout, leave=False
+			):
+				if not message.author.bot:
+					messages.append((message.author, message.content))
+				for reaction in message.reactions:
+					reaction_str = str(reaction.emoji)
+					async for user in reaction.users():
+						messages.append((user, reaction_str))
+	return messages
 
 
 async def add_server(server: discord.Guild):
-	messages = list(msg async for msg in server_messages(server))
+	print(f"Adding {server.name}")
+	messages = await server_messages(server)
 	# create and train a new model
 	models[server] = WCModel()
 	models[server].train(messages)
 	# count the emojis
-	s_emojis = set(await server_emojis(server))
+	s_emojis = set(str(emoji) for emoji in server.emojis)
 	emojis[server] = {e: 0 for e in s_emojis}
-	for message in messages:
+	for _, message in messages:
 		for emoji in get_emojis(message, s_emojis):
 			emojis[server][emoji] += 1
+	print()
 
 
 @bot.event
 async def on_ready():
+	global emoji_resolver
+	emoji_resolver = EmojiResolver(bot)
+	await emoji_resolver.load_server_emojis()
 	for server in bot.guilds:
 		await add_server(server)
+	print("Ready")
 
 
 @bot.event
@@ -67,9 +86,9 @@ async def cloud(ctx):
 	server = ctx.channel.guild
 	async with ctx.channel.typing():
 		for member in mentions:
-			image = make_image.wc_image(
-				server,
-				resolve_tags(server, models[server].word_cloud(member))
+			image = await make_image.wc_image(
+				resolve_tags(server, models[server].word_cloud(member)),
+				emoji_resolver
 			)
 
 			await ctx.channel.send(

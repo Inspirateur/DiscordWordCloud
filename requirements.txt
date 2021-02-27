@@ -1,0 +1,8 @@
+discord.py
+numpy
+wordcloud
+async_lru
+aiohttp
+emoji
+Pillow
+tqdm
