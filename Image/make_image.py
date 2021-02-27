@@ -1,12 +1,11 @@
 import io
-from typing import Any, Dict, Iterable, List, Tuple
-from discord import Emoji
+from typing import Hashable, Iterable, List, Tuple
+import discord
 import numpy as np
 from PIL import Image
 from random import randint
 from wordcloud import WordCloud
-# <emoji_id, image>
-emo_imgs: Dict = {}
+from emoji_loader import server_emojis, uni_emojis
 # proportions of the resulting image
 width = 400
 height = 200
@@ -20,7 +19,7 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 	return len(boxlist) > 0
 
 
-def make_boxlist(emolist: List[Tuple[Any, float]]) -> List[Tuple[Any, int, int, int]]:
+def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
 	total = 0.0
 	for (emoji, value) in emolist:
 		total += value
@@ -48,19 +47,28 @@ def make_boxlist(emolist: List[Tuple[Any, float]]) -> List[Tuple[Any, int, int, 
 	return boxlist
 
 
-def wc_image(wc: Iterable[Tuple[str, float]]) -> io.BytesIO:
+def wc_image(server: discord.Guild, wc: Iterable[Tuple[str, float]]) -> io.BytesIO:
 	"""
 	make and save an word cloud image generated with words and emojis
+	:param server: the server
 	:param wc: the word cloud data
 	:return: a virtual image file
 	"""
-	# TODO: update the code to deal with emojis in text
-	#  the best solution would probably be to have a mapping <emoji: str, image: idk> and scan the text with this
+	# compute emoji mapping
+	emo_imgs = await server_emojis(server) | uni_emojis()
+	# split the wc into words and emojis
+	str_wc = []
+	emo_wc = []
+	for token, value in wc:
+		if token in emo_imgs:
+			emo_wc.append((token, value))
+		else:
+			str_wc.append((token, value))
 	# we create the mask image
 	mask = np.zeros(shape=(height, width), dtype=int)
 
 	# compute the boxlist representing the space taken by emoji pics
-	boxlist: List[Tuple[Any, int, int, int]] = make_boxlist(emojis)
+	boxlist = make_boxlist(emo_wc)
 	# apply every box in boxlist to the mask
 	for (emo_id, x, y, size) in boxlist:
 		mask[y:y + size, x:x + size] = 255
@@ -69,7 +77,7 @@ def wc_image(wc: Iterable[Tuple[str, float]]) -> io.BytesIO:
 	imgobject: Image = WordCloud(
 		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
 		background_color=None, mode="RGBA"
-	).fit_words(dict(wc[:200])).to_image()
+	).fit_words(dict(str_wc[:200])).to_image()
 
 	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:
