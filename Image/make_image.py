@@ -1,6 +1,9 @@
 import io
+from colorsys import hls_to_rgb
 from typing import Hashable, Iterable, List, Tuple
 from random import randint
+import math
+from random import Random
 # noinspection PyPackageRequirements
 import numpy as np
 from PIL import Image
@@ -48,6 +51,12 @@ def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, 
 	return boxlist
 
 
+def color(word: str, font_size, position, orientation, font_path, random_state: Random):
+	if word.startswith("@") or word.startswith("#"):
+		return 114, 137, 218
+	return tuple(int(v*255) for v in hls_to_rgb(random_state.random(), .7, .9))
+
+
 async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -> io.BytesIO:
 	"""
 	make and save an word cloud image generated with words and emojis
@@ -78,7 +87,7 @@ async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -
 	# generate the image
 	imgobject: Image = WordCloud(
 		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
-		background_color=None, mode="RGBA"
+		background_color=None, mode="RGBA", color_func=color
 	).fit_words(dict(str_wc[:200])).to_image()
 
 	# paste the emojis from boxlist to the image
