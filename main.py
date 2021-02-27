@@ -104,7 +104,7 @@ async def emojis(ctx):
 	# compute a total for normalisation
 	total = sum(emo_count.values())
 	if total == 0:
-		await ctx.channel.send("Emoji Podium:\nIt's empty.")
+		await ctx.channel.send("Emoji usage for this server:\nIt's empty.")
 		return
 	# convert to list of tuple and sort
 	emo_count = sorted(list(emo_count.items()), key=lambda kv: kv[1], reverse=True)
@@ -117,7 +117,7 @@ async def emojis(ctx):
 	txtlist.append("...")
 	for (emoji, count) in bottom:
 		txtlist.append(f"\t{emoji} {count / total:.1%}")
-	await ctx.channel.send(f"Emoji Podium:\n" + "\n".join(txtlist))
+	await ctx.channel.send(f"Emoji usage for this server:\n" + "\n".join(txtlist))
 
 
 try:
