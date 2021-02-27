@@ -19,9 +19,7 @@ re_uni_emo = _emoji_pattern()
 re_word = r"[\w'-]+"
 re_token = re.compile(re_discord_thing+"|"+re_uni_emo+"|"+re_word)
 re_discord_emo = re.compile(r"<:\w*:\d*>")
-re_discord_tag = re.compile(
-	r"<@&([0-9]+)>|<@!?([0-9]+)>|<#([0-9]+)>"
-)
+re_discord_tag = re.compile(r"<@&([0-9]+)>|<@!?([0-9]+)>|<#([0-9]+)>")
 
 
 def tokenize(msg: str) -> List[str]:
@@ -31,7 +29,7 @@ def tokenize(msg: str) -> List[str]:
 def get_emojis(msg: str, emojis: Set[str]) -> Set[str]:
 	res = set()
 	for emoji in re_discord_emo.findall(msg):
-		if res in emojis:
+		if emoji in emojis:
 			res.add(emoji)
 	return res
 

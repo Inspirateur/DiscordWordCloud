@@ -15,21 +15,22 @@ intents = discord.Intents.default()
 intents.members = True
 intents.emojis = True
 bot = Bot(command_prefix=";", intents=intents)
-maxmsg = 10_000
+MAX_MESSAGES = 100
 # <server, wcmodel>
-models: Dict[discord.Guild, WCModel] = {}
+_models: Dict[discord.Guild, WCModel] = {}
 # <server, <emoji, count>>
-emojis: Dict[discord.Guild, Dict[str, int]] = {}
-emoji_resolver = None
+_emojis: Dict[discord.Guild, Dict[str, int]] = {}
+_emoji_resolver = None
 
 
 async def server_messages(server: discord.Guild) -> list:
 	messages = []
-	for channel in tqdm(server.text_channels, desc="Channels", file=sys.stdout):
+	for channel in tqdm(server.text_channels, desc=f"Channels {server.name}", file=sys.stdout):
 		if channel.permissions_for(server.me).read_messages:
 			# for every message in the channel up to a limit
 			async for message in tqdm_asyncio(
-					channel.history(limit=maxmsg), desc=channel.name, total=maxmsg, file=sys.stdout, leave=False
+					channel.history(limit=MAX_MESSAGES), desc=channel.name,
+					total=MAX_MESSAGES, file=sys.stdout, leave=False
 			):
 				if not message.author.bot:
 					messages.append((message.author, message.content))
@@ -41,25 +42,23 @@ async def server_messages(server: discord.Guild) -> list:
 
 
 async def add_server(server: discord.Guild):
-	print(f"Adding {server.name}")
 	messages = await server_messages(server)
 	# create and train a new model
-	models[server] = WCModel()
-	models[server].train(messages)
+	_models[server] = WCModel()
+	_models[server].train(messages)
 	# count the emojis
 	s_emojis = set(str(emoji) for emoji in server.emojis)
-	emojis[server] = {e: 0 for e in s_emojis}
+	_emojis[server] = {e: 0 for e in s_emojis}
 	for _, message in messages:
 		for emoji in get_emojis(message, s_emojis):
-			emojis[server][emoji] += 1
-	print()
+			_emojis[server][emoji] += 1
 
 
 @bot.event
 async def on_ready():
-	global emoji_resolver
-	emoji_resolver = EmojiResolver(bot)
-	await emoji_resolver.load_server_emojis()
+	global _emoji_resolver
+	_emoji_resolver = EmojiResolver(bot)
+	await _emoji_resolver.load_server_emojis()
 	for server in bot.guilds:
 		await add_server(server)
 	print("Ready")
@@ -87,14 +86,36 @@ async def cloud(ctx):
 	async with ctx.channel.typing():
 		for member in mentions:
 			image = await make_image.wc_image(
-				resolve_tags(server, models[server].word_cloud(member)),
-				emoji_resolver
+				resolve_tags(server, _models[server].word_cloud(member)),
+				_emoji_resolver
 			)
 
 			await ctx.channel.send(
 				content=f"{member.mention}'s Word Cloud:", allowed_mentions=discord.AllowedMentions.none(),
 				file=discord.File(fp=image, filename=f"{member.display_name}_word_cloud.png")
 			)
+
+
+@bot.command(name="emojis")
+async def emojis(ctx):
+	emo_count = _emojis[ctx.channel.guild]
+	# compute a total for normalisation
+	total = sum(emo_count.values())
+	if total == 0:
+		await ctx.channel.send("Emoji Podium:\nIt's empty.")
+		return
+	# convert to list of tuple and sort
+	emo_count = sorted(list(emo_count.items()), key=lambda kv: kv[1], reverse=True)
+	# separate the top 5 and the bottom 5
+	top = emo_count[:5]
+	bottom = emo_count[-5:]
+	txtlist = []
+	for (emoji, count) in top:
+		txtlist.append(f"\t{emoji} {count/total:.1%}")
+	txtlist.append("...")
+	for (emoji, count) in bottom:
+		txtlist.append(f"\t{emoji} {count / total:.1%}")
+	await ctx.channel.send(f"Emoji Podium:\n" + "\n".join(txtlist))
 
 
 try:
