@@ -25,7 +25,8 @@ _emoji_resolver = None
 
 
 async def server_messages(server: discord.Guild) -> list:
-	date_after = datetime.now()-timedelta(days=30)
+	# we don't go further than 100 days
+	date_after = datetime.now()-timedelta(days=100)
 	messages = []
 	for channel in tqdm(server.text_channels, desc=f"Channels {server.name}", file=sys.stdout):
 		if channel.permissions_for(server.me).read_messages:
