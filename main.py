@@ -22,9 +22,11 @@ _models: Dict[discord.Guild, WCModel] = {}
 # <server, <emoji, count>>
 _emojis: Dict[discord.Guild, Dict[str, int]] = {}
 _emoji_resolver = None
+# TODO: would be nice to bundle it into an .exe but it seems pyinstaller is not able to do it yet
 
 
 async def server_messages(server: discord.Guild) -> list:
+	# TODO: store messages so we can try out different models without waiting for discord API
 	# we don't go further than 100 days
 	date_after = datetime.now()-timedelta(days=100)
 	messages = []

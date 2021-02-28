@@ -23,6 +23,7 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 
 
 def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
+	# FIXME: For now, the emoji can overlap because we're using the "try and see if it works" algorithm
 	total = 0.0
 	for (emoji, value) in emolist:
 		total += value
