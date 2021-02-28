@@ -109,14 +109,19 @@ async def emojis(ctx):
 	# convert to list of tuple and sort
 	emo_count = sorted(list(emo_count.items()), key=lambda kv: kv[1], reverse=True)
 	# separate the top 5 and the bottom 5
-	top = emo_count[:5]
-	bottom = emo_count[-5:]
 	txtlist = []
-	for (emoji, count) in top:
-		txtlist.append(f"\t{emoji} {count/total:.1%}")
-	txtlist.append("...")
-	for (emoji, count) in bottom:
-		txtlist.append(f"\t{emoji} {count / total:.1%}")
+	if len(emo_count) > 20:
+		top = emo_count[:10]
+		bottom = emo_count[-10:]
+		for (emoji, count) in top:
+			txtlist.append(f"\t{emoji} {count/total:.1%}")
+		txtlist.append("...")
+		for (emoji, count) in bottom:
+			txtlist.append(f"\t{emoji} {count / total:.1%}")
+	else:
+		for (emoji, count) in emo_count:
+			txtlist.append(f"\t{emoji} {count / total:.1%}")
+
 	await ctx.channel.send(f"Emoji usage for this server:\n" + "\n".join(txtlist))
 
 

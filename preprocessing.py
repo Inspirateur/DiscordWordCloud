@@ -22,8 +22,15 @@ re_discord_emo = re.compile(r"<a?:\w*:\d*>")
 re_discord_tag = re.compile(r"<@&([0-9]+)>|<@!?([0-9]+)>|<#([0-9]+)>")
 
 
+def smart_lower(txt: str) -> str:
+	# lower case only if the first letter is capitalized and not the rest
+	if txt[0].isalpha() and txt[1:] == txt[1:].lower():
+		return txt.lower()
+	return txt
+
+
 def tokenize(msg: str) -> List[str]:
-	return filter(None, re_token.findall(msg))
+	return filter(None, (smart_lower(token) for token in re_token.findall(msg)))
 
 
 def get_emojis(msg: str, emojis: Set[str]) -> Set[str]:
