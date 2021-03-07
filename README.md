@@ -25,7 +25,7 @@ If you got any questions about this project, feel free to DM `Inspi#8989` on Dis
 ## Pictures
 
 ![sample image of my word cloud (french)](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png)
-![sample image of an english word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png)
+![sample image of an english word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud2.png)
 ![sample image of ;emojis command](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/emojis.png)
 
 ## Powered by:
