@@ -30,12 +30,12 @@ async def server_messages(server: discord.Guild) -> list:
 	# we don't go further than 100 days
 	date_after = datetime.now()-timedelta(days=100)
 	messages = []
-	for channel in tqdm(server.text_channels, desc=f"Channels {server.name}", file=sys.stdout):
+	for channel in tqdm(server.text_channels, desc=f"Channels {server.name}", ncols=140, file=sys.stdout):
 		if channel.permissions_for(server.me).read_messages:
 			# for every message in the channel up to a limit
 			async for message in tqdm_asyncio(
 					channel.history(limit=MAX_MESSAGES, after=date_after), desc=channel.name,
-					total=MAX_MESSAGES, file=sys.stdout, leave=False
+					total=MAX_MESSAGES, ncols=140, file=sys.stdout, leave=False
 			):
 				if not message.author.bot:
 					messages.append((message.author, message.content))

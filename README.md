@@ -23,10 +23,10 @@ If you got any questions about this project, feel free to DM `Inspi#8989` on Dis
 - `;emojis` to get the custom emojis usage of the server
 
 ## Pictures
-(not up to date)
 
-![sample image of a word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud_sample.png)
-![sample image of a word top usage](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/word_sample.png)
+![sample image of my word cloud (french)](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png)
+![sample image of an english word cloud](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png)
+![sample image of ;emojis command](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/emojis.png)
 
 ## Powered by:
 
