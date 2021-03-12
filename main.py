@@ -1,11 +1,11 @@
 import os
 import sys
-from typing import Dict
+from typing import Dict, List
 from datetime import datetime, timedelta
 # noinspection PyPackageRequirements
 import discord
 # noinspection PyPackageRequirements
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, has_permissions, MissingPermissions, guild_only, NoPrivateMessage
 from tqdm import tqdm
 from tqdm.asyncio import tqdm_asyncio
 import Image.make_image as make_image
@@ -17,37 +17,44 @@ intents.members = True
 intents.emojis = True
 bot = Bot(command_prefix=";", intents=intents)
 MAX_MESSAGES = 10_000
+DEFAULT_DAYS = 100
 # <server, wcmodel>
 _models: Dict[discord.Guild, WCModel] = {}
 # <server, <emoji, count>>
 _emojis: Dict[discord.Guild, Dict[str, int]] = {}
-_emoji_resolver = None
+_emoji_resolver: EmojiResolver = None
 # TODO: would be nice to bundle it into an .exe but it seems pyinstaller is not able to do it yet
 
 
-async def server_messages(server: discord.Guild) -> list:
+async def server_messages(server: discord.Guild, to_edit: discord.Message, days) -> list:
 	# TODO: store messages so we can try out different models without waiting for discord API
 	# we don't go further than 100 days
-	date_after = datetime.now()-timedelta(days=100)
+	date_after = datetime.now()-timedelta(days=days)
 	messages = []
-	for channel in tqdm(server.text_channels, desc=f"Channels {server.name}", ncols=140, file=sys.stdout):
-		if channel.permissions_for(server.me).read_messages:
-			# for every message in the channel up to a limit
-			async for message in tqdm_asyncio(
-					channel.history(limit=MAX_MESSAGES, after=date_after), desc=channel.name,
-					total=MAX_MESSAGES, ncols=140, file=sys.stdout, leave=False
-			):
-				if not message.author.bot:
-					messages.append((message.author, message.content))
-				for reaction in message.reactions:
-					reaction_str = str(reaction.emoji)
-					async for user in reaction.users():
-						messages.append((user, reaction_str))
+	# get all readable channels
+	channels: List[discord.TextChannel] = list(filter(
+		lambda c: c.permissions_for(server.me).read_messages,
+		server.text_channels
+	))
+	for i, channel in tqdm(list(enumerate(channels)), desc=f"Channels {server.name}", ncols=140, file=sys.stdout):
+		await to_edit.edit(content=f"> Reading {channel.mention} ({i+1}/{len(channels)})")
+		# for every message in the channel up to a limit
+		async for message in tqdm_asyncio(
+				channel.history(limit=MAX_MESSAGES, after=date_after), desc=channel.name,
+				total=MAX_MESSAGES, ncols=140, file=sys.stdout, leave=False
+		):
+			if not message.author.bot:
+				messages.append((message.author, message.content))
+			for reaction in message.reactions:
+				reaction_str = str(reaction.emoji)
+				async for user in reaction.users():
+					messages.append((user, reaction_str))
+
 	return messages
 
 
-async def add_server(server: discord.Guild):
-	messages = await server_messages(server)
+async def add_server(server: discord.Guild, to_edit: discord.Message, days):
+	messages = await server_messages(server, to_edit, days)
 	# create and train a new model
 	_models[server] = WCModel()
 	_models[server].train(messages)
@@ -64,30 +71,55 @@ async def on_ready():
 	global _emoji_resolver
 	_emoji_resolver = EmojiResolver(bot)
 	await _emoji_resolver.load_server_emojis()
-	for server in bot.guilds:
-		await add_server(server)
 	print("Ready")
 
 
 @bot.event
 async def on_guild_join(server: discord.Guild):
-	await add_server(server)
+	global _emoji_resolver
+	await _emoji_resolver.load_server_emojis(server)
 
 
-@bot.command(name="cloud")
+@bot.command(name="load", brief=f"Reads the messages of this server up to x days (cap at {MAX_MESSAGES} per channel)")
+@guild_only()
+@has_permissions(manage_channels=True)
+async def load(ctx, days=None):
+	if days is None:
+		days = DEFAULT_DAYS
+	else:
+		try:
+			days = int(days)
+		except ValueError:
+			await ctx.channel.send(f"`{days}` is not an integer, defaulting to {DEFAULT_DAYS}")
+			days = DEFAULT_DAYS
+	await ctx.channel.send(f"Loading messages up to {days} days")
+	to_edit = await ctx.channel.send(".")
+	status = await ctx.channel.send("**. . .**")
+	await add_server(ctx.message.channel.guild, to_edit, days)
+	await status.edit(content="Done !")
+
+
+@load.error
+async def load_error(ctx, error):
+	if isinstance(error, MissingPermissions):
+		await ctx.channel.send(
+			f"Sorry {ctx.message.author.mention} you need manage channels permission to use this command.",
+			allowed_mentions=discord.AllowedMentions.none()
+		)
+	elif isinstance(error, NoPrivateMessage):
+		await ctx.channel.send("This command can only be used in a server channel")
+
+
+@bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")
+@guild_only()
 async def cloud(ctx):
-	if isinstance(ctx.channel, discord.TextChannel):
-		channelname = ctx.channel.guild.name + "#" + ctx.channel.name
-	else:
-		channelname = "DM"
-	mentions = ctx.message.mentions
-	if len(mentions) == 0:
-		reqtext = "his WordCloud"
-		mentions.append(ctx.author)
-	else:
-		reqtext = "a WordCloud for " + ", ".join([user.name + "#" + user.discriminator for user in mentions])
-	print(f"{channelname}: {ctx.author.name}#{ctx.author.discriminator} requested {reqtext} !")
 	server = ctx.channel.guild
+	if server not in _models:
+		await ctx.channel.send(
+			"Word Clouds are not ready for this server yet, either call `;load` if you haven't already or wait for it to finish."
+		)
+		return
+	mentions = ctx.message.mentions
 	async with ctx.channel.typing():
 		for member in mentions:
 			image = await make_image.wc_image(
@@ -101,9 +133,22 @@ async def cloud(ctx):
 			)
 
 
-@bot.command(name="emojis")
+@cloud.error
+async def cloud_error(ctx, error):
+	if isinstance(error, NoPrivateMessage):
+		await ctx.channel.send("This command can only be used in a server channel")
+
+
+@bot.command(name="emojis", brief="Displays the emoji usage of this server")
+@guild_only()
 async def emojis(ctx):
-	emo_count = _emojis[ctx.channel.guild]
+	server = ctx.channel.guild
+	if server not in _emojis:
+		await ctx.channel.send(
+			"Emoji usage is not ready for this server yet, either call `;load` if you haven't already or wait for it to finish."
+		)
+		return
+	emo_count = _emojis[server]
 	# compute a total for normalisation
 	total = sum(emo_count.values())
 	if total == 0:
@@ -126,6 +171,17 @@ async def emojis(ctx):
 			txtlist.append(f"\t{emoji} {count / total:.1%}")
 
 	await ctx.channel.send(f"Emoji usage for this server:\n" + "\n".join(txtlist))
+
+
+@emojis.error
+async def emojis_error(ctx, error):
+	if isinstance(error, NoPrivateMessage):
+		await ctx.channel.send("This command can only be used in a server channel")
+
+
+@bot.command(name="info")
+async def info(ctx):
+	await ctx.channel.send(f"Author: Inspi#8989\nCode: https://github.com/Inspirateur/DiscordWordCloud")
 
 
 try:

@@ -64,9 +64,12 @@ class EmojiResolver:
 		self.client = client
 		self._mapping = uni_emojis()
 
-	async def load_server_emojis(self):
-		for server in self.client.guilds:
+	async def load_server_emojis(self, server=None):
+		if server is not None:
 			self._mapping |= await server_emojis(server)
+		else:
+			for server in self.client.guilds:
+				self._mapping |= await server_emojis(server)
 
 	async def contains(self, emoji: str):
 		if emoji in self._mapping:
