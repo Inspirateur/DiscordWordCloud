@@ -3,7 +3,7 @@ A Python 3.9 discord bot that generates a word cloud (now with emojis !) for eac
 
 ## How to run it
 - Clone the project wherever you want
-- Install Python 3.9 from https://www.python.org/
+- Install Python 3.9 from https://www.python.org/ (you can probably use an older version too)
 - Install the requirements listed in `requirements.txt` with `pip`
   - use `python -m pip install -r requirements.txt` at the root of the project
   - consult this guide if you need help with pip https://packaging.python.org/tutorials/installing-packages/
@@ -13,12 +13,13 @@ A Python 3.9 discord bot that generates a word cloud (now with emojis !) for eac
 - invite the bot on your Discord Server https://discordpy.readthedocs.io/en/latest/discord.html#inviting-your-bot
 - run `main.py` with Python 3.9
 
-And it should run ! You might need to wait a bit while it reads the channels if you got many messages though.
+And it should run !
 
 
 If you got any questions about this project, feel free to DM `Inspi#8989` on Discord.
 
 ## Features
+- `;load (days)` use this to load messages up to x days on your server 
 - `;cloud` to generate your word cloud, you can also tag someone in the command to generate their word cloud
 - `;emojis` to get the custom emojis usage of the server
 
