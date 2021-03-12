@@ -34,7 +34,7 @@ class WCBaseline(WCModel):
 		for user, tokens in g.items():
 			for token, count in tokens.items():
 				self.mat[self.users[user], self.voc[token]] = count
-		# normalize user word counts
+		# normalize user vocabulary
 		self.mat = self.mat/self.mat.sum(axis=1)[:, None]
 
 	def word_cloud(self, source: Hashable) -> Iterable[Tuple[str, float]]:
