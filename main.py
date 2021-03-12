@@ -17,7 +17,7 @@ intents.members = True
 intents.emojis = True
 bot = Bot(command_prefix=";", intents=intents)
 MAX_MESSAGES = 10_000
-DEFAULT_DAYS = 100
+DEFAULT_DAYS = 50
 # <server, wcmodel>
 _models: Dict[discord.Guild, WCModel] = {}
 # <server, <emoji, count>>
@@ -120,6 +120,8 @@ async def cloud(ctx):
 		)
 		return
 	mentions = ctx.message.mentions
+	if not mentions:
+		mentions.append(ctx.message.author)
 	async with ctx.channel.typing():
 		for member in mentions:
 			image = await make_image.wc_image(
