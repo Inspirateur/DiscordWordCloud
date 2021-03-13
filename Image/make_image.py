@@ -82,7 +82,7 @@ async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -
 
 	# generate the image
 	imgobject: Image = WordCloud(
-		"Image/Fonts/OpenSansEmoji.otf", WIDTH, HEIGHT, scale=SCALING, max_words=None, mask=mask,
+		"Image/Fonts/whitneymedium.otf", WIDTH, HEIGHT, scale=SCALING, max_words=None, mask=mask,
 		background_color=None, mode="RGBA", color_func=color
 	).fit_words(dict(str_wc[:200])).to_image()
 
