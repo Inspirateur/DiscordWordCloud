@@ -114,20 +114,36 @@ async def load_error(ctx, error):
 
 @bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")
 @guild_only()
-async def cloud(ctx):
-	server = ctx.channel.guild
+async def cloud(ctx, *args):
+	server: discord.Guild = ctx.channel.guild
 	if server not in _models:
 		await ctx.channel.send(
 			"Word Clouds are not ready for this server yet, either call `;load` if you haven't already or wait for it to finish."
 		)
 		return
-	mentions = ctx.message.mentions
-	if not mentions:
-		mentions.append(ctx.message.author)
+	# get all unique members targeted in this command
+	members = set(ctx.message.mentions)
+	for user_id in args:
+		try:
+			member = server.get_member(int(user_id))
+			if member:
+				members.add(member)
+		except ValueError:
+			pass
+	# if there's none it's for the author of the command
+	if not members:
+		members.add(ctx.message.author)
 	async with ctx.channel.typing():
-		for member in mentions:
+		for member in members:
+			wc = _models[server].word_cloud(member)
+			if not wc:
+				await ctx.channel.send(
+					content=f"Sorry I don't have any data on {member.mention} ...",
+					allowed_mentions=discord.AllowedMentions.none()
+				)
+				continue
 			image = await make_image.wc_image(
-				resolve_tags(server, _models[server].word_cloud(member)),
+				resolve_tags(server, wc),
 				_emoji_resolver
 			)
 
