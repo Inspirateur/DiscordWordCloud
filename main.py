@@ -49,7 +49,6 @@ async def server_messages(server: discord.Guild, to_edit: discord.Message, days)
 				reaction_str = str(reaction.emoji)
 				async for user in reaction.users():
 					messages.append((user, reaction_str))
-
 	return messages
 
 

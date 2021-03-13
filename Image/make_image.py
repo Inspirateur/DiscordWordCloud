@@ -13,11 +13,16 @@ HEIGHT = 200
 SCALING = 2
 
 
-def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int):
+def overlap(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int):
+	maxover = 0
 	for (emo_id, ox, oy, osize) in boxlist:
-		if not (ox+osize < x or ox > x+size or oy > y+size or oy+osize < y):
-			return True
-	return len(boxlist) > 0
+		dx = min(x+size, ox+osize) - max(x, ox)
+		dy = min(y+size, oy+osize) - max(y, oy)
+		if dx > 0 and dy > 0:
+			over = dx*dy
+			if over > maxover:
+				maxover = over
+	return maxover
 
 
 def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
@@ -34,21 +39,16 @@ def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, 
 		if size >= 16:
 			size = max(16, size)
 			# tries to generate a random non-overlapping box with this size (10 tries max)
-			for tries in range(10):
-				x = randint(0, WIDTH-size)
-				y = randint(0, HEIGHT-size)
-				if not is_overlapping(boxlist, x, y, size):
-					boxlist.append((emoji, x, y, size))
-					break
-			else:
-				# we couldn't generate a non-overlapping box in 10 tries, we generate one without checking
-				x = randint(0, WIDTH-size)
-				y = randint(0, HEIGHT-size)
-				boxlist.append((emoji, x, y, size))
+			x, y = min(
+				((randint(0, WIDTH-size), randint(0, HEIGHT-size))
+				for _ in range(10)),
+				key=lambda xy: overlap(boxlist, *xy, size)
+			)
+			boxlist.append((emoji, x, y, size))
 	return boxlist
 
 
-def color(word: str, font_size, position, orientation, font_path, random_state: Random):
+def color(word: str, random_state: Random, **_):
 	if word.startswith("@") or word.startswith("#"):
 		return 114, 137, 218
 	return tuple(int(v*255) for v in hls_to_rgb(random_state.random(), .7, .9))
