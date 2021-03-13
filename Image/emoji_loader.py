@@ -15,7 +15,6 @@ def uni_emojis() -> dict:
 	"""
 	Load all unicode emojis in 72x72 (folder from twemoji).
 	Since this is pretty fast we do it in the main thread
-
 	"""
 	emo_imgs = {}
 	twemoji_path = join("Image", "72x72")
@@ -74,11 +73,15 @@ class EmojiResolver:
 	async def contains(self, emoji: str):
 		if emoji in self._mapping:
 			return True
-		emo_id = int(emoji.split(":")[-1][:-1])
-		img = await external_emoji(emo_id)
-		if img is not None:
-			self._mapping[emoji] = img
-		return img is not None
+		# try to extract an id and load it as an external discord emoji
+		try:
+			emo_id = int(emoji.split(":")[-1][:-1])
+			img = await external_emoji(emo_id)
+			if img is not None:
+				self._mapping[emoji] = img
+			return img is not None
+		except ValueError:
+			return False
 
 	def __getitem__(self, emoji: str):
 		return self._mapping[emoji]

@@ -10,9 +10,9 @@ from preprocessing import re_discord_emo
 from wordcloud import WordCloud
 from Image.emoji_loader import EmojiResolver
 # proportions of the resulting image
-width = 400
-height = 200
-scaling = 2
+WIDTH = 400
+HEIGHT = 200
+SCALING = 2
 
 
 def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int):
@@ -24,29 +24,28 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 
 def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
 	# FIXME: For now, the emoji can overlap because we're using the "try and see if it works" algorithm
-	total = 0.0
-	for (emoji, value) in emolist:
-		total += value
+	emoji_scale = 8
+	total = sum(value for _, value in emolist)
 	# compute random non-overalapping boxes for the custom emojis
 	# boxlist is (emoji_id, x, y, size)
 	boxlist: List[Tuple[int, int, int, int]] = []
 	for (emoji, value) in emolist:
 		# compute the size based on the relative strength of the emoji
-		size = min(round(height/2), round(height*value/total))
-		# we only take the emoji if its worth a pixel in our image
-		if size >= 4:
+		size = min(round(HEIGHT/4), round(emoji_scale*HEIGHT*value/total))
+		# we only take the emoji if its worth a 16x16 square in our image
+		if size >= 16:
 			size = max(16, size)
 			# tries to generate a random non-overlapping box with this size (10 tries max)
 			for tries in range(10):
-				x = randint(0, width - size)
-				y = randint(0, height - size)
+				x = randint(0, WIDTH-size)
+				y = randint(0, HEIGHT-size)
 				if not is_overlapping(boxlist, x, y, size):
 					boxlist.append((emoji, x, y, size))
 					break
 			else:
 				# we couldn't generate a non-overlapping box in 10 tries, we generate one without checking
-				x = randint(0, width - size)
-				y = randint(0, height - size)
+				x = randint(0, WIDTH-size)
+				y = randint(0, HEIGHT-size)
 				boxlist.append((emoji, x, y, size))
 	return boxlist
 
@@ -68,15 +67,12 @@ async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -
 	str_wc = []
 	emo_wc = []
 	for token, value in wc:
-		match = re_discord_emo.match(token)
-		if match:
-			match = match[0]
-			if await emoji_imgs.contains(match):
-				emo_wc.append((match, value))
+		if await emoji_imgs.contains(token):
+			emo_wc.append((token, value))
 		else:
 			str_wc.append((token, value))
 	# we create the mask image
-	mask = np.zeros(shape=(height, width), dtype=int)
+	mask = np.zeros(shape=(HEIGHT, WIDTH), dtype=int)
 
 	# compute the boxlist representing the space taken by emoji pics
 	boxlist = make_boxlist(emo_wc)
@@ -86,16 +82,16 @@ async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -
 
 	# generate the image
 	imgobject: Image = WordCloud(
-		"Image/Fonts/OpenSansEmoji.otf", scale=scaling, max_words=None, mask=mask,
+		"Image/Fonts/OpenSansEmoji.otf", WIDTH, HEIGHT, scale=SCALING, max_words=None, mask=mask,
 		background_color=None, mode="RGBA", color_func=color
 	).fit_words(dict(str_wc[:200])).to_image()
 
 	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:
 		# get the scaled emoji picture
-		emo_img: Image = emoji_imgs[emo_id].resize((size*scaling, size*scaling))
+		emo_img: Image = emoji_imgs[emo_id].resize((size*SCALING, size*SCALING)).convert("RGBA")
 		# paste it in the pre-defined box
-		imgobject.paste(emo_img, (x*scaling, y*scaling))
+		imgobject.alpha_composite(emo_img, (x*SCALING, y*SCALING))
 
 	# get and return the image bytes
 	imgbytes = io.BytesIO()

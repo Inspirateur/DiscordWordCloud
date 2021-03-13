@@ -108,6 +108,8 @@ async def load_error(ctx, error):
 		)
 	elif isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel")
+	else:
+		print(error)
 
 
 @bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")
@@ -139,6 +141,8 @@ async def cloud(ctx):
 async def cloud_error(ctx, error):
 	if isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel")
+	else:
+		print(error)
 
 
 @bot.command(name="emojis", brief="Displays the emoji usage of this server")
@@ -179,6 +183,8 @@ async def emojis(ctx):
 async def emojis_error(ctx, error):
 	if isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel")
+	else:
+		print(error)
 
 
 @bot.command(name="info")
