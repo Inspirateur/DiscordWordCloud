@@ -3,10 +3,8 @@ from colorsys import hls_to_rgb
 from typing import Hashable, Iterable, List, Tuple
 from random import randint
 from random import Random
-# noinspection PyPackageRequirements
 import numpy as np
 from PIL import Image
-from preprocessing import re_discord_emo
 from wordcloud import WordCloud
 from Image.emoji_loader import EmojiResolver
 # proportions of the resulting image
@@ -23,7 +21,7 @@ def is_overlapping(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, siz
 
 
 def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
-	# FIXME: For now, the emoji can overlap because we're using the "try and see if it works" algorithm
+	# FIXME: For now, the emojis can overlap because we're using the "try and see if it works" algorithm
 	emoji_scale = 8
 	total = sum(value for _, value in emolist)
 	# compute random non-overalapping boxes for the custom emojis

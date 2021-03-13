@@ -1,5 +1,4 @@
 from typing import Iterable, Hashable, Tuple
-defaultwords = [("No data", 0.70), ("NaN", 0.25), ("nada", 0.025), ("rien", 0.025)]
 
 
 class WCModel:
