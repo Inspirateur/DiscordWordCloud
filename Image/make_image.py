@@ -38,7 +38,7 @@ def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, 
 		# we only take the emoji if its worth a 16x16 square in our image
 		if size >= 16:
 			size = max(16, size)
-			# tries to generate a random non-overlapping box with this size (10 tries max)
+			# randomly place the emoji 10 times and take the least overlapping one
 			x, y = min(
 				((randint(0, WIDTH-size), randint(0, HEIGHT-size))
 				for _ in range(10)),
@@ -74,9 +74,14 @@ async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -
 
 	# compute the boxlist representing the space taken by emoji pics
 	boxlist = make_boxlist(emo_wc)
-	# apply every box in boxlist to the mask
+	# apply the alpha of every emoji on the mask if it exists, else mask out the box
 	for (emo_id, x, y, size) in boxlist:
-		mask[y:y + size, x:x + size] = 255
+		emo_img = emoji_imgs[emo_id]
+		if emo_img.mode in ("RGBA", "LA") or (emo_img.mode == "P" and "transparency" in emo_img.info):
+			emo_img = emo_img.convert("RGBA").resize((size, size))
+			mask[y:y + size, x:x + size] = np.asarray(emo_img.split()[-1]).copy()
+		else:
+			mask[y:y + size, x:x + size] = 255
 
 	# generate the image
 	imgobject: Image = WordCloud(
