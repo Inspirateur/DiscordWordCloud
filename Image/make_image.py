@@ -27,7 +27,7 @@ def overlap(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int)
 
 def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
 	# FIXME: For now, the emojis can overlap because we're using the "try and see if it works" algorithm
-	emoji_scale = 4
+	emoji_scale = 3
 	total = sum(value for _, value in emolist)
 	# compute random non-overalapping boxes for the custom emojis
 	# boxlist is (emoji_id, x, y, size)
