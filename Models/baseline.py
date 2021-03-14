@@ -7,7 +7,9 @@ from wcmodel import WCModel
 
 class WCBaseline(WCModel):
 	mat: np.ndarray
-	voc: dict
+	# [tokens]
+	voc: list
+	# <user, index>
 	users: dict
 
 	def __init__(self, alpha=1):
@@ -22,7 +24,8 @@ class WCBaseline(WCModel):
 		for user, message in messages:
 			for token in tokenize(message):
 				g[user][token] += 1
-		self.voc = {}
+		# at first voc is <token, index>
+		self.voc: dict = {}
 		self.users = {}
 		for user, tokens in g.items():
 			self.users[user] = len(self.users)
@@ -34,16 +37,20 @@ class WCBaseline(WCModel):
 		for user, tokens in g.items():
 			for token, count in tokens.items():
 				self.mat[self.users[user], self.voc[token]] = count
+		# turn voc into the list of tokens, useful in word_cloud
+		self.voc = list(self.voc.keys())
 		# normalize user vocabulary
 		self.mat = self.mat/self.mat.sum(axis=1)[:, None]
 
-	def word_cloud(self, source: Hashable) -> Iterable[Tuple[str, float]]:
+	def word_cloud(self, source: Hashable, k=200) -> Iterable[Tuple[str, float]]:
 		"""
 		Returns a word cloud for source
 		:param source: the source to generate a word cloud for
+		:param k: limit the output to top k
 		:return: [(text, strength), ...] a summary of the source's messages
 		"""
 		if source not in self.users:
 			return []
-		col = self.mat[self.users[source], :]/self.mat.sum(axis=0)
-		return sorted([(token, col[i]) for token, i in self.voc.items()], key=lambda tc: tc[1], reverse=True)
+		score = self.mat[self.users[source], :]/self.mat.sum(axis=0)
+		ind = np.argpartition(score, -k)[-k:]
+		return [(self.voc[i], score[i]) for i in ind]

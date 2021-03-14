@@ -27,7 +27,7 @@ def overlap(boxlist: List[Tuple[int, int, int, int]], x: int, y: int, size: int)
 
 def make_boxlist(emolist: List[Tuple[Hashable, float]]) -> List[Tuple[Hashable, int, int, int]]:
 	# FIXME: For now, the emojis can overlap because we're using the "try and see if it works" algorithm
-	emoji_scale = 8
+	emoji_scale = 4
 	total = sum(value for _, value in emolist)
 	# compute random non-overalapping boxes for the custom emojis
 	# boxlist is (emoji_id, x, y, size)
@@ -82,7 +82,7 @@ async def wc_image(wc: Iterable[Tuple[str, float]], emoji_imgs: EmojiResolver) -
 	imgobject: Image = WordCloud(
 		"Image/Fonts/whitneymedium.otf", WIDTH, HEIGHT, scale=SCALING, max_words=None, mask=mask,
 		background_color=None, mode="RGBA", color_func=color
-	).fit_words(dict(str_wc[:200])).to_image()
+	).fit_words(dict(str_wc)).to_image()
 
 	# paste the emojis from boxlist to the image
 	for (emo_id, x, y, size) in boxlist:

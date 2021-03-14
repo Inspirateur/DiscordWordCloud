@@ -12,10 +12,11 @@ class WCModel:
 		"""
 		raise NotImplementedError()
 
-	def word_cloud(self, source: Hashable) -> Iterable[Tuple[str, float]]:
+	def word_cloud(self, source: Hashable, k=200) -> Iterable[Tuple[str, float]]:
 		"""
 		Returns a word cloud for source
 		:param source: the source to generate a word cloud for
+		:param k: limit the output to top k
 		:return: [(text, strength), ...] a summary of the source's messages
 		"""
 		raise NotImplementedError()

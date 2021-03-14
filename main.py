@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from typing import Dict, List
@@ -44,16 +45,15 @@ async def server_messages(server: discord.Guild, to_edit: discord.Message, days)
 				total=MAX_MESSAGES, ncols=140, file=sys.stdout, leave=False
 		):
 			if not message.author.bot:
-				messages.append((message.author, message.content))
+				messages.append((message.author.id, message.content))
 			for reaction in message.reactions:
 				reaction_str = str(reaction.emoji)
 				async for user in reaction.users():
-					messages.append((user, reaction_str))
+					messages.append((user.id, reaction_str))
 	return messages
 
 
-async def add_server(server: discord.Guild, to_edit: discord.Message, days):
-	messages = await server_messages(server, to_edit, days)
+async def add_server(server: discord.Guild, messages):
 	# create and train a new model
 	_models[server] = WCModel()
 	_models[server].train(messages)
@@ -94,7 +94,12 @@ async def load(ctx, days=None):
 	await ctx.channel.send(f"Loading messages up to {days} days")
 	to_edit = await ctx.channel.send(".")
 	status = await ctx.channel.send("**. . .**")
-	await add_server(ctx.message.channel.guild, to_edit, days)
+	server = ctx.message.channel.guild
+	messages = await server_messages(server, to_edit, days)
+	# we save messages for fast reloading
+	with open(f"save_{server.id}.json", "w") as fmessages:
+		json.dump(messages, fmessages)
+	await add_server(server, messages)
 	await status.edit(content="Done !")
 
 
@@ -106,9 +111,34 @@ async def load_error(ctx, error):
 			allowed_mentions=discord.AllowedMentions.none()
 		)
 	elif isinstance(error, NoPrivateMessage):
-		await ctx.channel.send("This command can only be used in a server channel")
+		await ctx.channel.send("This command can only be used in a server channel.")
 	else:
 		print(error)
+
+
+@bot.command(name="reload", brief=f"Reload the last state, for debugging")
+@guild_only()
+@has_permissions(manage_channels=True)
+async def reload(ctx):
+	await ctx.channel.send(f"Reloading the last state ...")
+	server = ctx.message.channel.guild
+	with open(f"save_{server.id}.json", "r") as fmessages:
+		messages = json.load(fmessages)
+	await add_server(server, messages)
+	await ctx.channel.send("Done !")
+
+
+@reload.error
+async def reload_error(ctx, error):
+	if isinstance(error, MissingPermissions):
+		await ctx.channel.send(
+			f"Sorry {ctx.message.author.mention} you need manage channels permission to use this command.",
+			allowed_mentions=discord.AllowedMentions.none()
+		)
+	elif isinstance(error, NoPrivateMessage):
+		await ctx.channel.send("This command can only be used in a server channel.")
+	elif isinstance(error, OSError):
+		await ctx.channel.send("Found no saves to reload, use `;load` instead.")
 
 
 @bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")
@@ -134,7 +164,7 @@ async def cloud(ctx, *args):
 		members.add(ctx.message.author)
 	async with ctx.channel.typing():
 		for member in members:
-			wc = _models[server].word_cloud(member)
+			wc = _models[server].word_cloud(member.id)
 			if not wc:
 				await ctx.channel.send(
 					content=f"Sorry I don't have any data on {member.mention} ...",
