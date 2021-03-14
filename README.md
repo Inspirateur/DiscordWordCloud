@@ -24,8 +24,7 @@ If you got any questions about this project, feel free to DM `Inspi#8989` on Dis
 - `;emojis` to get the custom emojis usage of the server
 
 ## Pictures
-
-https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/emojis.png
+<img align="left" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/emojis.png">
 <img align="right" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png">
 <img align="right" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud2.png">
 
