@@ -20,7 +20,7 @@ def uni_emojis() -> dict:
 	twemoji_path = join("Image", "72x72")
 	emofiles = listdir(twemoji_path)
 	# for every emoji file in twemoji
-	for emofile in tqdm(emofiles, desc="Unicode Emojis", file=sys.stdout):
+	for emofile in tqdm(emofiles, desc="Unicode Emojis", ncols=140, file=sys.stdout):
 		filename, _ = emofile.split(".")
 		# get the emoji codepoint(s)
 		emocodes = filename.split("-")
@@ -49,7 +49,7 @@ async def server_emojis(server: discord.Guild) -> dict:
 	"""
 	emo_imgs = {}
 	async with aiohttp.ClientSession() as session:
-		for emoji in tqdm_asyncio(server.emojis, desc=f"Emojis {server.name}", file=sys.stdout):
+		for emoji in tqdm_asyncio(server.emojis, desc=f"Emojis {server.name}", ncols=140, file=sys.stdout):
 			emoji_str = str(emoji)
 			if emoji_str not in emo_imgs:
 				async with session.get(str(emoji.url)) as resp:
