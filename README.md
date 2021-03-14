@@ -25,8 +25,8 @@ If you got any questions about this project, feel free to DM `Inspi#8989` on Dis
 
 ## Pictures
 ![](https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/emojis.png)
-<img align="right" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png">
-<img align="right" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud2.png">
+<img float="right" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud1.png">
+<img float="right" src="https://github.com/Inspirateur/DiscordWordCloud/blob/master/screenshots/cloud2.png">
 
 ## How it works
 
