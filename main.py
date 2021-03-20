@@ -137,6 +137,8 @@ async def reload_error(ctx, error):
 		await ctx.channel.send("This command can only be used in a server channel.")
 	elif isinstance(error, OSError):
 		await ctx.channel.send("Found no saves to reload, use `;load` instead.")
+	else:
+		print(error)
 
 
 @bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")

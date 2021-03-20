@@ -16,10 +16,12 @@ def _emoji_pattern():
 
 re_discord_thing = r"<[^\s]+>"
 re_uni_emo = _emoji_pattern()
+re_url = r"https?://[^\s]+"
 re_word = r"[\w'-]+"
-re_token = re.compile(re_discord_thing+"|"+re_uni_emo+"|"+re_word)
+re_token = re.compile(re_discord_thing+"|"+re_uni_emo+"|"+re_url+"|"+re_word)
 re_discord_emo = re.compile(r"<a?:\w*:\d*>")
 re_discord_tag = re.compile(r"<@&([0-9]+)>|<@!?([0-9]+)>|<#([0-9]+)>")
+re_domain = re.compile(r"https?://(?:www.)?([^/\s.]+)[^\s]+")
 
 
 def smart_lower(txt: str) -> str:
@@ -29,8 +31,15 @@ def smart_lower(txt: str) -> str:
 	return txt
 
 
+def url_domain(txt: str) -> str:
+	match = re_domain.match(txt)
+	if match:
+		return match[1]
+	return txt
+
+
 def tokenize(msg: str) -> List[str]:
-	return filter(None, (smart_lower(token) for token in re_token.findall(msg)))
+	return map(url_domain, map(smart_lower, filter(None, re_token.findall(msg))))
 
 
 def get_emojis(msg: str, emojis: Set[str]) -> Set[str]:

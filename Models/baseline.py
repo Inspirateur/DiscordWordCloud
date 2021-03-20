@@ -39,8 +39,6 @@ class WCBaseline(WCModel):
 				self.mat[self.users[user], self.voc[token]] = count
 		# turn voc into the list of tokens, useful in word_cloud
 		self.voc = list(self.voc.keys())
-		# normalize user vocabulary
-		self.mat = self.mat/self.mat.sum(axis=1)[:, None]
 
 	def word_cloud(self, source: Hashable, k=200) -> Iterable[Tuple[str, float]]:
 		"""
@@ -51,6 +49,14 @@ class WCBaseline(WCModel):
 		"""
 		if source not in self.users:
 			return []
-		score = self.mat[self.users[source], :]/self.mat.sum(axis=0)
+		# compute vocab distribution of source
+		user_count = self.mat[self.users[source], :]
+		mask = user_count == self.alpha
+		user_vocab = user_count/user_count.sum()
+		# compute global vocab distribution
+		global_vocab = self.mat.sum(axis=0)/self.mat.sum()
+		score = user_vocab/global_vocab
+		score[mask] = 0
+		# get top k indices
 		ind = np.argpartition(score, -k)[-k:]
-		return [(self.voc[i], score[i]) for i in ind]
+		return [(self.voc[i], score[i]) for i in ind if score[i] > 1]
