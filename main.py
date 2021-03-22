@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import traceback
 from typing import Dict, List
 from datetime import datetime, timedelta
 # noinspection PyPackageRequirements
@@ -111,7 +112,7 @@ async def load_error(ctx, error):
 	elif isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel.")
 	else:
-		print(error)
+		traceback.print_exc()
 
 
 @bot.command(name="reload", brief=f"Reload the last state, for debugging")
@@ -138,7 +139,7 @@ async def reload_error(ctx, error):
 	elif isinstance(error, OSError):
 		await ctx.channel.send("Found no saves to reload, use `;load` instead.")
 	else:
-		print(error)
+		traceback.print_exc()
 
 
 @bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")
@@ -187,7 +188,7 @@ async def cloud_error(ctx, error):
 	if isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel")
 	else:
-		print(error)
+		traceback.print_exc()
 
 
 @bot.command(name="emojis", brief="Displays the emoji usage of this server")
@@ -229,7 +230,7 @@ async def emojis_error(ctx, error):
 	if isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel")
 	else:
-		print(error)
+		traceback.print_exc()
 
 
 @bot.command(name="info")
