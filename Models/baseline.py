@@ -49,6 +49,8 @@ class WCBaseline(WCModel):
 		"""
 		if source not in self.users:
 			return []
+		# k cannot be bigger than the vocabulary
+		k = min(k, len(self.voc))
 		# compute vocab distribution of source
 		user_count = self.mat[self.users[source], :]
 		mask = user_count == self.alpha

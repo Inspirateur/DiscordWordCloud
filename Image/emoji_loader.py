@@ -65,10 +65,10 @@ class EmojiResolver:
 
 	async def load_server_emojis(self, server=None):
 		if server is not None:
-			self._mapping |= await server_emojis(server)
+			self._mapping.update(await server_emojis(server))
 		else:
 			for server in self.client.guilds:
-				self._mapping |= await server_emojis(server)
+				self._mapping.update(await server_emojis(server))
 
 	async def contains(self, emoji: str):
 		if emoji in self._mapping:
