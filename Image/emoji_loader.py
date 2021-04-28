@@ -29,7 +29,8 @@ def uni_emojis() -> dict:
 			# load the image using the unicode char as key
 			key = chr(int(emocode, 16))
 			emo_imgs[key] = Image.open(join(twemoji_path, emofile))
-			# we load the image in memory now so we can close the file
+			# load the image in memory now so the file can be closed
+			# see https://pillow.readthedocs.io/en/stable/reference/open_files.html#file-handling
 			emo_imgs[key].load()
 	return emo_imgs
 
