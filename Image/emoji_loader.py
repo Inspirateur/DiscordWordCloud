@@ -27,7 +27,10 @@ def uni_emojis() -> dict:
 		# for every emoji codepoint
 		for emocode in emocodes:
 			# load the image using the unicode char as key
-			emo_imgs[chr(int(emocode, 16))] = Image.open(join(twemoji_path, emofile))
+			key = chr(int(emocode, 16))
+			emo_imgs[key] = Image.open(join(twemoji_path, emofile))
+			# we load the image in memory now so we can close the file
+			emo_imgs[key].load()
 	return emo_imgs
 
 
