@@ -191,6 +191,27 @@ async def cloud_error(ctx, error):
 		traceback.print_exc()
 
 
+def emoji_usage_list(emo_count):
+	# compute a total for normalisation
+	total = sum(emo_count.values())
+	# convert to list of tuple and sort
+	emo_count = sorted(list(emo_count.items()), key=lambda kv: kv[1], reverse=True)
+	# separate the top 5 and the bottom 5
+	txtlist = []
+	if len(emo_count) > 20:
+		top = emo_count[:10]
+		bottom = emo_count[-10:]
+		for (emoji, count) in top:
+			txtlist.append(f"\t{emoji} {count / total:.1%}")
+		txtlist.append("...")
+		for (emoji, count) in bottom:
+			txtlist.append(f"\t{emoji} {count / total:.1%}")
+	else:
+		for (emoji, count) in emo_count:
+			txtlist.append(f"\t{emoji} {count / total:.1%}")
+	return txtlist
+
+
 @bot.command(name="emojis", brief="Displays the emoji usage of this server")
 @guild_only()
 async def emojis(ctx):
@@ -200,29 +221,24 @@ async def emojis(ctx):
 			"Emoji usage is not ready for this server yet, either call `;load` if you haven't already or wait for it to finish."
 		)
 		return
-	emo_count = _emojis[server]
-	# compute a total for normalisation
-	total = sum(emo_count.values())
-	if total == 0:
-		await ctx.channel.send("Emoji usage for this server:\nIt's empty.")
-		return
-	# convert to list of tuple and sort
-	emo_count = sorted(list(emo_count.items()), key=lambda kv: kv[1], reverse=True)
-	# separate the top 5 and the bottom 5
-	txtlist = []
-	if len(emo_count) > 20:
-		top = emo_count[:10]
-		bottom = emo_count[-10:]
-		for (emoji, count) in top:
-			txtlist.append(f"\t{emoji} {count/total:.1%}")
-		txtlist.append("...")
-		for (emoji, count) in bottom:
-			txtlist.append(f"\t{emoji} {count / total:.1%}")
+	global_emo_count = _emojis[server]
+	emo_count = {}
+	animated_count = {}
+	for emo, count in global_emo_count.items():
+		if emo.startswith("<a"):
+			animated_count[emo] = count
+		else:
+			emo_count[emo] = count
+	txt_list = emoji_usage_list(emo_count)
+	if txt_list:
+		await ctx.channel.send(f"Emoji usage for this server:\n" + "\n".join(txt_list))
 	else:
-		for (emoji, count) in emo_count:
-			txtlist.append(f"\t{emoji} {count / total:.1%}")
-
-	await ctx.channel.send(f"Emoji usage for this server:\n" + "\n".join(txtlist))
+		await ctx.channel.send("Emoji usage for this server:\nIt's empty.")
+	txt_list = emoji_usage_list(animated_count)
+	if txt_list:
+		await ctx.channel.send(f"Animated emoji usage for this server:\n" + "\n".join(txt_list))
+	else:
+		await ctx.channel.send("Animated emoji usage for this server:\nIt's empty.")
 
 
 @emojis.error
