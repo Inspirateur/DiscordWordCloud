@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import sys
@@ -96,8 +97,8 @@ async def load(ctx, days=None):
 	server = ctx.message.channel.guild
 	messages = await server_messages(server, to_edit, days)
 	# we save messages for fast reloading
-	with open(f"save_{server.id}.json", "w") as fmessages:
-		json.dump(messages, fmessages)
+	with open(f"save_{server.id}.csv", "w") as fmessages:
+		csv.writer(fmessages).writerows(messages)
 	await add_server(server, messages)
 	await status.edit(content="Done !")
 
@@ -121,8 +122,11 @@ async def load_error(ctx, error):
 async def reload(ctx):
 	await ctx.channel.send(f"Reloading the last state ...")
 	server = ctx.message.channel.guild
-	with open(f"save_{server.id}.json", "r") as fmessages:
-		messages = json.load(fmessages)
+	with open(f"save_{server.id}.csv", "r") as fmessages:
+		reader = csv.reader(fmessages)
+		messages = [(int(line[0]), line[1]) for line in reader]
+	ls = [type(item) for item in messages]
+	print(ls)
 	await add_server(server, messages)
 	await ctx.channel.send("Done !")
 
