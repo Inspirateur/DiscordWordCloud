@@ -125,8 +125,6 @@ async def reload(ctx):
 	with open(f"save_{server.id}.csv", "r") as fmessages:
 		reader = csv.reader(fmessages)
 		messages = [(int(line[0]), line[1]) for line in reader]
-	ls = [type(item) for item in messages]
-	print(ls)
 	await add_server(server, messages)
 	await ctx.channel.send("Done !")
 
