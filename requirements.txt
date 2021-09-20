@@ -5,5 +5,5 @@ async_lru
 aiohttp
 emoji
 Pillow
-tqdmp
+tqdm
 colorama
