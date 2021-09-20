@@ -1,9 +1,9 @@
-discord.py
+discord
 numpy
 wordcloud
 async_lru
 aiohttp
 emoji
 Pillow
-tqdm
+tqdmp
 colorama

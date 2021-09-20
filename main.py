@@ -257,5 +257,6 @@ async def info(ctx):
 try:
 	with open("token.txt", "r") as ftoken:
 		bot.run(ftoken.read())
-except OSError:
+except OSError as e:
+	print("Could not open the token file:", e)
 	bot.run(os.environ["TOKEN"])
