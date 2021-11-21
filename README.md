@@ -2,19 +2,27 @@
 A Python 3.9 discord bot that generates a word cloud (now with emojis !) for each discord user.
 
 ## How to run it
+
+### Register Discord Application
+- go to https://discordapp.com/developers/applications/ create your app
+  - add a User Bot to it and paste its Token in `token.txt`
+  - enable `SERVER MEMBERS INTENT` in the bot tab  
+  - invite the bot with `https://discord.com/api/oauth2/authorize?client_id=CLIENT_ID&permissions=0&scope=bot` replace `CLIENT_ID` with the Client ID of your app
+
+
+### Run Locally
 - Clone the project wherever you want
 - Install Python 3.9 from https://www.python.org/ (you can probably use an older version too)
 - Install the requirements listed in `requirements.txt` with `pip`
   - use `python -m pip install -r requirements.txt` at the root of the project
   - consult this guide if you need help with pip https://packaging.python.org/tutorials/installing-packages/
 - add a `token.txt` file at the root of the project
-- go to https://discordapp.com/developers/applications/ create your app
-  - add a User Bot to it and paste its Token in `token.txt`
-  - enable `SERVER MEMBERS INTENT` in the bot tab  
-  - invite the bot with `https://discord.com/api/oauth2/authorize?client_id=CLIENT_ID&permissions=0&scope=bot` replace `CLIENT_ID` with the Client ID of your app
 - run `main.py` with Python 3.9
 
-And it should run !
+### Run with Docker
+```
+docker run -e TOKEN=TOKEN_FROM_ABOVE_GOES_HERE mrhazel/discord-word-cloud
+```
 
 
 If you got any questions about this project, feel free to DM `Inspi#8989` on Discord.
