@@ -1,4 +1,4 @@
-discord
+py-cord
 numpy
 wordcloud
 async_lru

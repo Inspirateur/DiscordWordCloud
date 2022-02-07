@@ -1,4 +1,4 @@
-from typing import List, Tuple, Set
+from typing import Iterable, List, Tuple, Set
 import re
 # noinspection PyPackageRequirements
 from discord import Guild
@@ -7,10 +7,10 @@ from discord import Guild
 def _emoji_pattern():
 	import emoji
 
-	EMOJI_UNICODE = emoji.unicode_codes.EMOJI_UNICODE["en"]
+	emoji_unicode = emoji.unicode_codes.EMOJI_UNICODE["en"]
 	# Sort emojis by length to make sure multi-character emojis are
 	# matched first
-	emojis = sorted(EMOJI_UNICODE.values(), key=len, reverse=True)
+	emojis = sorted(emoji_unicode.values(), key=len, reverse=True)
 	return '|'.join(re.escape(u) for u in emojis)
 
 
@@ -38,7 +38,7 @@ def url_domain(txt: str) -> str:
 	return txt
 
 
-def tokenize(msg: str) -> List[str]:
+def tokenize(msg: str) -> Iterable[str]:
 	return map(url_domain, map(smart_lower, filter(None, re_token.findall(msg))))
 
 
@@ -50,7 +50,7 @@ def get_emojis(msg: str, emojis: Set[str]) -> Set[str]:
 	return res
 
 
-def resolve_tags(guild: Guild, wordcloud: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
+def resolve_tags(guild: Guild, wordcloud: Iterable[Tuple[str, float]]) -> List[Tuple[str, float]]:
 	"""
 	Make discord tags readable: <@user.id> -> @user.name, <#channel.id> -> #channel.name and so on
 	:param guild: the Guild the request was from

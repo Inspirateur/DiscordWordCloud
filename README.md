@@ -50,6 +50,6 @@ and importing your custom class instead of `WCBaseline` in `main.py` !
 
 ## Powered by:
 
-- discord.py: https://github.com/Rapptz/discord.py
+- Pycord: https://github.com/Pycord-Development/pycord
 - WordCloud: https://github.com/amueller/word_cloud
 - Twemoji: https://twemoji.twitter.com/
