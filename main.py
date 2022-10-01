@@ -7,17 +7,15 @@ from datetime import datetime, timedelta
 # noinspection PyPackageRequirements
 import discord
 # noinspection PyPackageRequirements
-from discord.ext.commands import Bot, has_permissions, MissingPermissions, guild_only, NoPrivateMessage
+from discord.ext.commands import has_permissions, MissingPermissions, guild_only, NoPrivateMessage, Greedy
 from tqdm import tqdm
 from tqdm.asyncio import tqdm_asyncio
 import Image.make_image as make_image
 from Image.emoji_loader import EmojiResolver
 from Models.baseline import WCBaseline as WCModel
 from preprocessing import resolve_tags, get_emojis
-intents = discord.Intents.default()
-intents.members = True
-intents.emojis = True
-bot = Bot(command_prefix=";", intents=intents)
+intents = discord.Intents.all()
+bot = discord.Bot(debug_guilds=[913042210348486710], intents=intents)
 MAX_MESSAGES = 10_000
 DEFAULT_DAYS = 50
 # <server, wcmodel>
@@ -78,22 +76,14 @@ async def on_guild_join(server: discord.Guild):
 	await _emoji_resolver.load_server_emojis(server)
 
 
-@bot.command(name="load", brief=f"Reads the messages of this server up to x days (cap at {MAX_MESSAGES} per channel)")
+@bot.command(description=f"Reads the messages of this server up to x days (cap at {MAX_MESSAGES} per channel)")
 @guild_only()
 @has_permissions(manage_channels=True)
-async def load(ctx, days=None):
-	if days is None:
-		days = DEFAULT_DAYS
-	else:
-		try:
-			days = int(days)
-		except ValueError:
-			await ctx.channel.send(f"`{days}` is not an integer, defaulting to {DEFAULT_DAYS}")
-			days = DEFAULT_DAYS
-	await ctx.channel.send(f"Loading messages up to {days} days")
+async def load(ctx, days: discord.Option(int, default=DEFAULT_DAYS)):
+	await ctx.respond(f"Loading messages up to {days} days")
 	to_edit = await ctx.channel.send(".")
 	status = await ctx.channel.send("**. . .**")
-	server = ctx.message.channel.guild
+	server = ctx.guild
 	messages = await server_messages(server, to_edit, days)
 	# we save messages for fast reloading
 	with open(f"save_{server.id}.json", "w") as fmessages:
@@ -106,7 +96,7 @@ async def load(ctx, days=None):
 async def load_error(ctx, error):
 	if isinstance(error, MissingPermissions):
 		await ctx.channel.send(
-			f"Sorry {ctx.message.author.mention} you need manage channels permission to use this command.",
+			f"Sorry {ctx.author.mention} you need manage channels permission to use this command.",
 			allowed_mentions=discord.AllowedMentions.none()
 		)
 	elif isinstance(error, NoPrivateMessage):
@@ -115,12 +105,12 @@ async def load_error(ctx, error):
 		traceback.print_exc()
 
 
-@bot.command(name="reload", brief=f"Reload the last state, for debugging")
+@bot.command(description=f"Reload the last state, for debugging")
 @guild_only()
 @has_permissions(manage_channels=True)
 async def reload(ctx):
-	await ctx.channel.send(f"Reloading the last state ...")
-	server = ctx.message.channel.guild
+	await ctx.respond(f"Reloading the last state ...")
+	server = ctx.guild
 	with open(f"save_{server.id}.json", "r") as fmessages:
 		messages = json.load(fmessages)
 	await add_server(server, messages)
@@ -131,55 +121,45 @@ async def reload(ctx):
 async def reload_error(ctx, error):
 	if isinstance(error, MissingPermissions):
 		await ctx.channel.send(
-			f"Sorry {ctx.message.author.mention} you need manage channels permission to use this command.",
+			f"Sorry {ctx.author.mention} you need manage channels permission to use this command.",
 			allowed_mentions=discord.AllowedMentions.none()
 		)
 	elif isinstance(error, NoPrivateMessage):
 		await ctx.channel.send("This command can only be used in a server channel.")
 	elif isinstance(error, OSError):
-		await ctx.channel.send("Found no saves to reload, use `;load` instead.")
+		await ctx.channel.send("Found no saves to reload, use `/load` instead.")
 	else:
 		traceback.print_exc()
 
 
-@bot.command(name="cloud", brief="Creates a workcloud for you or whoever you tag")
+@bot.command(description="Creates a workcloud for you or someone you tag")
 @guild_only()
-async def cloud(ctx, *args):
-	server: discord.Guild = ctx.channel.guild
+async def cloud(ctx, member: discord.Option(discord.Member, required=False)):
+	server: discord.Guild = ctx.guild
 	if server not in _models:
-		await ctx.channel.send(
-			"Word Clouds are not ready for this server yet, either call `;load` if you haven't already or wait for it to finish."
+		await ctx.respond(
+			"Word Clouds are not ready for this server yet, either call `/load` if you haven't already or wait for it to finish."
 		)
 		return
-	# get all unique members targeted in this command
-	members = set(ctx.message.mentions)
-	for user_id in args:
-		try:
-			member = server.get_member(int(user_id))
-			if member:
-				members.add(member)
-		except ValueError:
-			pass
 	# if there's none it's for the author of the command
-	if not members:
-		members.add(ctx.message.author)
+	if member is None:
+		member = ctx.author
 	async with ctx.channel.typing():
-		for member in members:
-			wc = _models[server].word_cloud(member.id)
-			if not wc:
-				await ctx.channel.send(
-					content=f"Sorry I don't have any data on {member.mention} ...",
-					allowed_mentions=discord.AllowedMentions.none()
-				)
-				continue
+		wc = _models[server].word_cloud(member.id)
+		try:
 			image = await make_image.wc_image(
 				resolve_tags(server, wc),
 				_emoji_resolver
 			)
 
-			await ctx.channel.send(
+			await ctx.respond(
 				content=f"{member.mention}'s Word Cloud:", allowed_mentions=discord.AllowedMentions.none(),
 				file=discord.File(fp=image, filename=f"{member.display_name}_word_cloud.png")
+			)
+		except e:
+			await ctx.respond(
+				content=f"Sorry I don't have enough data on {member.mention} ...",
+				allowed_mentions=discord.AllowedMentions.none()
 			)
 
 
@@ -212,13 +192,13 @@ def emoji_usage_list(emo_count):
 	return txtlist
 
 
-@bot.command(name="emojis", brief="Displays the emoji usage of this server")
+@bot.command(description="Displays the emoji usage of this server")
 @guild_only()
 async def emojis(ctx):
-	server = ctx.channel.guild
+	server = ctx.guild
 	if server not in _emojis:
-		await ctx.channel.send(
-			"Emoji usage is not ready for this server yet, either call `;load` if you haven't already or wait for it to finish."
+		await ctx.respond(
+			"Emoji usage is not ready for this server yet, either call `/load` if you haven't already or wait for it to finish."
 		)
 		return
 	global_emo_count = _emojis[server]
@@ -231,9 +211,9 @@ async def emojis(ctx):
 			emo_count[emo] = count
 	txt_list = emoji_usage_list(emo_count)
 	if txt_list:
-		await ctx.channel.send(f"Emoji usage for this server:\n" + "\n".join(txt_list))
+		await ctx.respond(f"Emoji usage for this server:\n" + "\n".join(txt_list))
 	else:
-		await ctx.channel.send("Emoji usage for this server:\nIt's empty.")
+		await ctx.respond("Emoji usage for this server:\nIt's empty.")
 	txt_list = emoji_usage_list(animated_count)
 	if txt_list:
 		await ctx.channel.send(f"Animated emoji usage for this server:\n" + "\n".join(txt_list))
@@ -249,14 +229,17 @@ async def emojis_error(ctx, error):
 		traceback.print_exc()
 
 
-@bot.command(name="info")
+@bot.command(description="Contact and code for the bot")
 async def info(ctx):
-	await ctx.channel.send(f"Author: Inspi#8989\nCode: https://github.com/Inspirateur/DiscordWordCloud")
+	await ctx.respond(f"Author: Inspi#8989\nCode: https://github.com/Inspirateur/DiscordWordCloud")
 
 
 try:
 	with open("token.txt", "r") as ftoken:
 		bot.run(ftoken.read())
 except OSError as e:
-	print("Could not open the token file:", e)
-	bot.run(os.environ["TOKEN"])
+	print("Could not find token.txt, trying TOKEN env var instead")
+	try:
+		bot.run(os.environ["TOKEN"])
+	except KeyError as e:
+		print("Could not find the env var TOKEN")

@@ -3,19 +3,8 @@ import re
 # noinspection PyPackageRequirements
 from discord import Guild
 
-
-def _emoji_pattern():
-	import emoji
-
-	emoji_unicode = emoji.unicode_codes.EMOJI_UNICODE["en"]
-	# Sort emojis by length to make sure multi-character emojis are
-	# matched first
-	emojis = sorted(emoji_unicode.values(), key=len, reverse=True)
-	return '|'.join(re.escape(u) for u in emojis)
-
-
 re_discord_thing = r"<[^\s]+>"
-re_uni_emo = _emoji_pattern()
+re_uni_emo = r"[\u263a-\U0001f645]"
 re_url = r"https?://[^\s]+"
 re_word = r"[\w'-]+"
 re_token = re.compile(re_discord_thing+"|"+re_uni_emo+"|"+re_url+"|"+re_word)
