@@ -6,7 +6,7 @@ A Python 3.9 discord bot that generates a word cloud (now with emojis !) for eac
 ### Register Discord Application
 - go to https://discordapp.com/developers/applications/ create your app
   - add a User Bot to it and paste its Token in `token.txt`
-  - enable `SERVER MEMBERS INTENT` in the bot tab  
+  - enable `SERVER MEMBERS INTENT` and `MESSAGE CONTENT INTENT` in the bot tab  
   - invite the bot with `https://discord.com/api/oauth2/authorize?client_id=CLIENT_ID&permissions=0&scope=bot` replace `CLIENT_ID` with the Client ID of your app
 
 
