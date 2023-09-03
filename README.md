@@ -1,5 +1,5 @@
 # DiscordWordCloud
-⚠️*This version is outdated, I've rewrote the bot in Rust here https://github.com/Inspirateur/wordy* ⚠️
+⚠️*This version is outdated, I've rewrote the bot in Rust here https://github.com/Inspirateur/wordy* ⚠️  
 A Python 3.9 discord bot that generates a word cloud (now with emojis !) for each discord user.
 
 ## How to run it
